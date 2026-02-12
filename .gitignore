@@ -1,0 +1,8 @@
+node_modules
+.env
+*.db
+*.db-journal
+dist
+client/build
+client/.svelte-kit
+client/node_modules

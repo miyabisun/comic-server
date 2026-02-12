@@ -1,0 +1,28 @@
+{
+  "name": "comic-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:client": "cd client && npm run dev",
+    "build:client": "cd client && npm install && npm run build",
+    "build": "npm run build:client",
+    "start": "node --import tsx src/index.ts",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.8",
+    "@prisma/client": "^6.3.1",
+    "date-fns": "^4.1.0",
+    "fs-readdir-recursive": "^1.1.0",
+    "hono": "^4.7.2",
+    "smart-sort": "^0.0.3",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "prisma": "^6.3.1",
+    "typescript": "^5.7.3"
+  }
+}
