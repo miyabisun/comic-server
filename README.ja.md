@@ -15,10 +15,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/app/data
       - /path/to/comics:/comics    # ← コミック画像フォルダのパスに置き換え
     environment:
-      - DATABASE_URL=file:/app/data/comic.db
       - COMIC_PATH=/comics
       - PORT=3000
 ```
@@ -35,10 +33,11 @@ docker compose up -d
 
 | 環境変数 | デフォルト | 説明 |
 |---|---|---|
-| `DATABASE_URL` | `file:./prisma/comic.db` | データベースファイルのパス |
 | `COMIC_PATH` | `./comics` | コミック画像フォルダのパス |
 | `PORT` | `3000` | サーバーのポート番号 |
 | `BASE_PATH` | (なし) | リバースプロキシ配下で使う場合のパス (例: `/comic`) |
+
+データベース (`comic.db`) は初回起動時に `COMIC_PATH` 内に自動生成されます。本棚ディレクトリも自動で作成されます。
 
 ## フォルダ構成
 

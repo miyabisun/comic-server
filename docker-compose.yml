@@ -4,9 +4,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/app/data
       - /path/to/comics:/comics
     environment:
-      - DATABASE_URL=file:/app/data/comic.db
       - COMIC_PATH=/comics
       - PORT=3000

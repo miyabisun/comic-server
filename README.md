@@ -15,10 +15,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/app/data
       - /path/to/comics:/comics    # ← Replace with your comic folder path
     environment:
-      - DATABASE_URL=file:/app/data/comic.db
       - COMIC_PATH=/comics
       - PORT=3000
 ```
@@ -35,10 +33,11 @@ docker compose up -d
 
 | Variable | Default | Description |
 |---|---|---|
-| `DATABASE_URL` | `file:./prisma/comic.db` | Database file path |
 | `COMIC_PATH` | `./comics` | Root directory for comic image folders |
 | `PORT` | `3000` | Server port |
 | `BASE_PATH` | (empty) | Path prefix for reverse proxy deployment (e.g., `/comic`) |
+
+The database (`comic.db`) is automatically created inside `COMIC_PATH` on first startup. Bookshelf directories are also created automatically.
 
 ## Folder Structure
 

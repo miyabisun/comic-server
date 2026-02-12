@@ -18,10 +18,8 @@ services:
         - BASE_PATH=/comic           # Build-time: baked into frontend
     environment:
       - BASE_PATH=/comic             # Runtime: server route prefix
-      - DATABASE_URL=file:/app/data/comic.db
       - COMIC_PATH=/comics
     volumes:
-      - ./data:/app/data
       - /path/to/comics:/comics
 ```
 

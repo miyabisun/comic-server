@@ -13,6 +13,9 @@ import bookshelves from './routes/bookshelves.js'
 import brands from './routes/brands.js'
 import register from './routes/register.js'
 import { comicPath } from './lib/config.js'
+import { init } from './lib/init.js'
+
+await init()
 
 const port = Number(process.env.PORT) || 3000
 const basePath = (process.env.BASE_PATH || '').replace(/\/+$/, '')

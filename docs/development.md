@@ -51,10 +51,9 @@ comic-server/
 # Install dependencies
 npm install
 cd client && npm install && cd ..
-
-# Initialize database
-npx prisma db push
 ```
+
+The database and bookshelf directories are created automatically on first server startup.
 
 ## Development
 
