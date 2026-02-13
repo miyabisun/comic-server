@@ -4,30 +4,86 @@
 
 A self-hosted comic library server with a built-in web viewer. Point it at your image folders and browse, organize, and review your collection from the browser.
 
-## Quick Start (Docker)
+## Quick Start (Docker + Nginx)
 
-1. Create a `docker-compose.yml`:
+Recommended setup: Nginx serves static images directly, comic-server handles the API and SPA.
+
+1. Create `docker-compose.yml`:
 
 ```yaml
 services:
   comic-server:
     image: ghcr.io/miyabisun/comic-server:latest
-    ports:
-      - "3000:3000"
-    volumes:
-      - /path/to/comics:/comics    # ← Replace with your comic folder path
     environment:
       - COMIC_PATH=/comics
       - PORT=3000
+      - BASE_PATH=/comic
+    volumes:
+      - /path/to/comics:/comics       # ← Replace with your comic folder path
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /path/to/comics:/var/www/images:ro   # ← Same path as above
+    depends_on:
+      - comic-server
+    restart: unless-stopped
 ```
 
-2. Start the server:
+2. Create `nginx.conf`:
+
+```nginx
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       mime.types;
+    sendfile      on;
+
+    upstream comic {
+        server comic-server:3000;
+    }
+
+    server {
+        listen 80;
+
+        # Static images - served directly by Nginx (bypasses Node.js)
+        location /comic/images/ {
+            alias /var/www/images/;
+            expires 1d;
+            add_header Cache-Control "public, immutable";
+        }
+
+        # Application (API + SPA)
+        location = /comic {
+            return 301 /comic/;
+        }
+        location /comic/ {
+            proxy_pass http://comic/comic/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+```
+
+3. Start:
 
 ```bash
 docker compose up -d
 ```
 
-3. Open `http://localhost:3000` in your browser.
+4. Open `http://localhost/comic/` in your browser.
+
+> For standalone deployment (without Nginx), see [Reverse Proxy docs](docs/reverse-proxy.md#standalone-without-nginx).
 
 ## Configuration
 

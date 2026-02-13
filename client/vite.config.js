@@ -10,6 +10,7 @@ export default defineConfig({
 			$lib: path.resolve('./src/lib')
 		}
 	},
+	base: './',
 	build: {
 		outDir: 'build'
 	},

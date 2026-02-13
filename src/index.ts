@@ -67,7 +67,10 @@ sub.get('/images/*', async (c) => {
 })
 
 // Serve built frontend static files
-sub.use('/*', serveStatic({ root: './client/build' }))
+sub.use('/*', serveStatic({
+  root: './client/build',
+  rewriteRequestPath: (path) => path.startsWith(basePath) ? path.slice(basePath.length) : path,
+}))
 
 // SPA fallback - serve index.html for all non-API, non-image routes
 sub.get('*', async (c) => {
