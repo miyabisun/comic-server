@@ -4,5 +4,4 @@ node_modules
 *.db-journal
 dist
 client/build
-client/.svelte-kit
 client/node_modules

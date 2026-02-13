@@ -1,8 +1,6 @@
 # Stage 1: Build client
 FROM node:20-alpine AS client-builder
 WORKDIR /app/client
-ARG BASE_PATH=""
-ENV BASE_PATH=${BASE_PATH}
 COPY client/package.json client/package-lock.json* ./
 RUN npm install
 COPY client/ ./

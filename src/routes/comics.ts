@@ -6,6 +6,7 @@ import type { Comic } from '@prisma/client'
 import { prisma } from '../lib/db.js'
 import { comicPath } from '../lib/config.js'
 import sanitizeFilename from '../lib/sanitize-filename.js'
+import parseComicName from '../lib/parse-comic-name.js'
 
 function toCustomPath(comic: Comic): RegExp | null {
   try {
@@ -28,6 +29,15 @@ app.get('/api/comics', async (c) => {
     orderBy: { created_at: 'desc' },
   })
   return c.json(result)
+})
+
+// Parse comic name to extract metadata
+app.get('/api/parse', (c) => {
+  const name = c.req.query('name')
+  if (!name) {
+    return c.json({ error: 'Missing name parameter' }, 400)
+  }
+  return c.json(parseComicName(name))
 })
 
 // Check existence by file (sanitizes input to match DB values)

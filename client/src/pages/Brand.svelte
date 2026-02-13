@@ -1,8 +1,6 @@
 <script>
 	import { format, parseISO } from 'date-fns';
-	import { base } from '$app/paths';
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import { link, navigate } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
 	import { updateComic, deleteComic as apiDeleteComic } from '$lib/api.js';
@@ -10,7 +8,8 @@
 	import ReviewStars from '$lib/components/ReviewStars.svelte';
 	import { reloadOnFocus } from '$lib/reload-on-focus.svelte.js';
 
-	let name = $derived($page.params.name);
+	let { params } = $props();
+	let name = $derived(params.name);
 	let comics = $state(null);
 
 	async function load(_name) {
@@ -20,6 +19,7 @@
 	$effect(() => {
 		comics = null;
 		load(name);
+		document.title = `Brand: ${name}`;
 	});
 
 	reloadOnFocus(() => load(name));
@@ -55,14 +55,10 @@
 	function handleKeyDown(e) {
 		if (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
 			e.preventDefault();
-			goto(`${base}/`);
+			navigate('/');
 		}
 	}
 </script>
-
-<svelte:head>
-	<title>Brand: {name}</title>
-</svelte:head>
 
 <svelte:window onkeydown={handleKeyDown} />
 
@@ -98,7 +94,7 @@
 							{#if isDeleted}
 								{comic.title || comic.file}
 							{:else}
-								<a href="{base}/comics/{comic.id}">{comic.title || comic.file}</a>
+								<a href="{link('/comics/' + comic.id)}">{comic.title || comic.file}</a>
 							{/if}
 						</td>
 						<td class="date">

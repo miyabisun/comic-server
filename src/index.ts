@@ -11,7 +11,8 @@ import { stream } from 'hono/streaming'
 import comics from './routes/comics.js'
 import bookshelves from './routes/bookshelves.js'
 import brands from './routes/brands.js'
-import register from './routes/register.js'
+import register, { registerAll } from './routes/register.js'
+import duplicates from './routes/duplicates.js'
 import { comicPath } from './lib/config.js'
 import { init } from './lib/init.js'
 
@@ -34,6 +35,7 @@ sub.route('/', comics)
 sub.route('/', bookshelves)
 sub.route('/', brands)
 sub.route('/', register)
+sub.route('/', duplicates)
 
 // Image serving: /images/:bookshelf/:file/:path
 sub.get('/images/*', async (c) => {
@@ -71,7 +73,8 @@ sub.use('/*', serveStatic({ root: './client/build' }))
 sub.get('*', async (c) => {
   const indexPath = path.join(process.cwd(), 'client/build/index.html')
   if (fs.existsSync(indexPath)) {
-    const html = fs.readFileSync(indexPath, 'utf-8')
+    let html = fs.readFileSync(indexPath, 'utf-8')
+    html = html.replace('window.__BASE_PATH__ = ""', `window.__BASE_PATH__ = ${JSON.stringify(basePath)}`)
     return c.html(html)
   }
   return c.json({ error: 'Frontend not built. Run: npm run build:client' }, 404)
@@ -85,3 +88,15 @@ if (basePath) {
 
 console.log(`Server running on http://localhost:${port}${basePath || '/'}`)
 serve({ fetch: app.fetch, port })
+
+// Auto-register from haystack/ every 60 seconds
+setInterval(async () => {
+  try {
+    const result = await registerAll()
+    if (result.registered.length || result.duplicated.length) {
+      console.log(`[polling] registered: ${result.registered.length}, duplicated: ${result.duplicated.length}`)
+    }
+  } catch (e) {
+    console.error('[polling] register failed:', e)
+  }
+}, 60_000)

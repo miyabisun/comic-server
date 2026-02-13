@@ -4,28 +4,37 @@
 //   (genre) [brand (author)] title
 //   [brand] title
 //   other -> title = name
+//
+// Known tags like [DL版] are stripped before parsing
+// to avoid misidentifying them as brand names.
 
-function zipObj(ks: string[], vs: string[]): Record<string, string> {
-  const result: Record<string, string> = {}
-  ks.forEach((k, i) => { result[k] = vs[i] || '' })
-  return result
+import { KNOWN_TAGS } from './normalize-brackets.js'
+
+const KNOWN_TAG_PATTERN = new RegExp(`\\[(${KNOWN_TAGS.join('|')})\\]\\s*`, 'g')
+
+function stripKnownTags(name: string): string {
+  return name.replace(KNOWN_TAG_PATTERN, '').replace(/\s+/g, ' ').trim()
 }
 
 export default function parseComicName(name: string) {
-  let parsed: Record<string, string> | undefined
+  const stripped = stripKnownTags(name)
 
   let m: RegExpMatchArray | null
 
-  if ((m = name.match(/^\(([^)]+)\).*\[([^\]]+)\](.+)\(([^)]+)\)$/))) {
-    const values = m.slice(1).map((s) => s.trim())
-    parsed = zipObj(['genre', 'brand', 'title', 'original'], values)
-  } else if ((m = name.match(/^\(([^)]+)\).*\[([^\]]+)\](.+)/))) {
-    const values = m.slice(1).map((s) => s.trim())
-    parsed = zipObj(['genre', 'brand', 'title'], values)
-  } else if ((m = name.match(/^\[([^\]]+)\](.+)/))) {
-    const values = m.slice(1).map((s) => s.trim())
-    parsed = zipObj(['brand', 'title'], values)
+  if ((m = stripped.match(/^\(([^)]+)\).*\[([^\]]+)\](.+)\(([^)]+)\)$/))) {
+    const [genre, brand, title, original] = m.slice(1).map((s) => s.trim())
+    return { title, genre, brand, original }
   }
 
-  return { title: name, genre: '', brand: '', original: '', ...parsed }
+  if ((m = stripped.match(/^\(([^)]+)\).*\[([^\]]+)\](.+)/))) {
+    const [genre, brand, title] = m.slice(1).map((s) => s.trim())
+    return { title, genre, brand, original: '' }
+  }
+
+  if ((m = stripped.match(/^\[([^\]]+)\](.+)/))) {
+    const [brand, title] = m.slice(1).map((s) => s.trim())
+    return { title, genre: '', brand, original: '' }
+  }
+
+  return { title: name, genre: '', brand: '', original: '' }
 }

@@ -1,12 +1,12 @@
 <script>
-	import { base } from '$app/paths';
+	import { link } from '$lib/router.svelte.js';
 </script>
 
 <header>
 	<ul class="breadcrumbs">
-		<li><a href="{base}/">nyaa-library</a></li>
+		<li><a href="{link('/')}">comic-server</a></li>
 		{#each ['unread', 'legend', 'favorite', 'like', 'hold', 'trash', 'deleted'] as shelf}
-			<li><a href="{base}/bookshelves/{shelf}">{shelf}</a></li>
+			<li><a href="{link('/bookshelves/' + shelf)}">{shelf}</a></li>
 		{/each}
 	</ul>
 </header>

@@ -76,7 +76,43 @@ Check if a comic exists by filename.
 
 **Response**: `{ exists: boolean, comic?: Comic }`
 
+## Parse
+
+### `GET /api/parse`
+
+Parse a comic directory name to extract metadata. Strips known tags (e.g., `[DL版]`) before matching.
+
+**Query**: `?name=filename`
+
+**Response**:
+```json
+{
+  "title": "...",
+  "genre": "",
+  "brand": "",
+  "original": ""
+}
+```
+
 ## Bookshelves
+
+### `GET /api/bookshelves`
+
+Get record counts for each bookshelf.
+
+**Response**:
+```json
+{
+  "unread": 3468,
+  "like": 3369,
+  "favorite": 2857,
+  "hold": 1439,
+  "legend": 568,
+  "haystack": 20,
+  "trash": 16,
+  "deleted": 5
+}
+```
 
 ### `GET /api/bookshelves/:name`
 

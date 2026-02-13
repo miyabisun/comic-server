@@ -1,16 +1,15 @@
 <script>
-	import { base } from '$app/paths';
-	import { page } from '$app/stores';
+	import { link } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
 	import { updateComic } from '$lib/api.js';
 	import { addToast } from '$lib/toast.svelte.js';
 	import { levelGe } from '$lib/levels.js';
-	import parse from '$lib/parse.js';
 	import { createHoldRepeat } from '$lib/hold-repeat.svelte.js';
 	import { reloadOnFocus } from '$lib/reload-on-focus.svelte.js';
 
-	let id = $derived($page.params.id);
+	let { params } = $props();
+	let id = $derived(params.id);
 	let comic = $state(null);
 	let tmpComic = $state({});
 	let imgPointer = $state(1);
@@ -29,6 +28,10 @@
 		comic = null;
 		imgPointer = 1;
 		load(id);
+	});
+
+	$effect(() => {
+		document.title = comic?.file || 'loading...';
 	});
 
 	reloadOnFocus(() => load(id));
@@ -89,8 +92,13 @@
 		load(id);
 	}
 
-	function reParse() {
-		tmpComic = { ...tmpComic, ...parse(tmpComic.file || comic.file) };
+	async function reParse() {
+		try {
+			const parsed = await fetcher(`${config.path.api}/parse?name=${encodeURIComponent(tmpComic.file || comic.file)}`);
+			tmpComic = { ...tmpComic, ...parsed };
+		} catch {
+			addToast('Parse failed');
+		}
 	}
 
 	function createNewFile() {
@@ -113,18 +121,12 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{comic?.file || 'loading...'}</title>
-</svelte:head>
-
 <svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
 
 <main id="comic">
 	{#if !comic}
 		loading...
 	{:else}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="canvas" onclick={() => { if (showInfo) { tmpComic = {}; showInfo = false; } }}>
 			<ul class="images" style="transform: translateX(-{(imgPointer - 1) * 100}vw)">
 				{#if comic.images.length > 0}
@@ -141,8 +143,6 @@
 			<div class="review">
 				<ul>
 					{#each ['trash', 'hold', 'like', 'favorite', 'legend'] as n}
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:up={levelGe(comic.bookshelf, n)}
 							onclick={() => changeBookshelf(n)}
@@ -152,8 +152,6 @@
 			</div>
 			<div class="info">
 				{#if showInfo}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 					<form onclick={(e) => e.stopPropagation()} onsubmit={handleSubmit}>
 						<div class="buttons">
 							<button type="button" onclick={reParse}>re parse</button>
@@ -163,7 +161,7 @@
 							<label>
 								<span>
 									{#if n === 'brand'}
-										<a href="{base}/brand/{getField('brand')}">{n}</a>
+										<a href="{link('/brand/' + getField('brand'))}">{n}</a>
 									{:else}
 										{n}
 									{/if}
@@ -177,8 +175,6 @@
 						<input type="submit" value="update" />
 					</form>
 				{/if}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="button" onclick={(e) => { e.stopPropagation(); showInfo = !showInfo; }}>ℹ</div>
 			</div>
 		</div>

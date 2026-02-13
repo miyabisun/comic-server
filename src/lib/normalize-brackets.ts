@@ -2,7 +2,7 @@
 // This function attempts to intelligently fix bracket imbalances
 
 // Known tag patterns that should be self-contained in brackets
-const KNOWN_TAGS = [
+export const KNOWN_TAGS = [
   'DL版',
   '中文翻訳',
   '中国翻訳',

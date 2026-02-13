@@ -1,9 +1,8 @@
-import { env } from '$env/dynamic/public';
-import { base } from '$app/paths';
+import { getBasePath } from '$lib/router.svelte.js';
 
 export default {
 	path: {
-		api: env.PUBLIC_API_PATH || `${base}/api`,
-		images: env.PUBLIC_IMAGE_PATH || `${base}/images`
+		get api() { return `${getBasePath()}/api`; },
+		get images() { return `${getBasePath()}/images`; }
 	}
 };

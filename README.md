@@ -35,7 +35,7 @@ docker compose up -d
 |---|---|---|
 | `COMIC_PATH` | `./comics` | Root directory for comic image folders |
 | `PORT` | `3000` | Server port |
-| `BASE_PATH` | (empty) | Path prefix for reverse proxy deployment (e.g., `/comic`) |
+| `BASE_PATH` | (empty) | Path prefix for reverse proxy deployment (e.g., `/comic`). Runtime only — no rebuild needed. |
 
 The database (`comic.db`) is automatically created inside `COMIC_PATH` on first startup. Bookshelf directories are also created automatically.
 

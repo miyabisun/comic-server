@@ -7,66 +7,90 @@ import sanitize from '../lib/sanitize-filename.js'
 
 const app = new Hono()
 
-// Register a comic from haystack directory
-app.post('/api/register', async (c) => {
-  const body = await c.req.json()
-  const name = body.name as string | undefined
+const haystackDir = `${comicPath}/haystack`
+const duplicatesDir = `${comicPath}/duplicates`
+const unreadDir = `${comicPath}/unread`
 
-  if (!name) {
-    return c.json({ error: 'Missing name' }, 400)
-  }
+let running = false
 
-  if (name.includes('/') || name.includes('..')) {
-    return c.json({ error: 'Invalid name' }, 400)
-  }
-
-  const haystackDir = `${comicPath}/haystack/${name}`
-
-  if (!fs.existsSync(haystackDir)) {
-    return c.json({ error: `Directory not found: haystack/${name}` }, 404)
-  }
-
-  // Parse metadata from raw name (before sanitization)
-  const parsed = parseComicName(name)
-
-  // Sanitize for filesystem/web-safe directory name
-  const sanitizedName = sanitize(name)
-
-  const existing = await prisma.comic.findFirst({ where: { file: sanitizedName } })
-
-  if (existing) {
-    fs.rmSync(haystackDir, { recursive: true, force: true })
-    console.warn(`[register] duplicate skipped: ${name} (id: ${existing.id}, bookshelf: ${existing.bookshelf})`)
-    return c.json({ message: 'already registered, removed from haystack', data: { name: sanitizedName }, deduplicated: true }, 200)
-  }
+export async function registerAll() {
+  if (running) return { registered: [], duplicated: [], errors: [] }
+  running = true
 
   try {
-    // NOTE: fs operations inside transaction won't rollback if DB fails after rename
-    await prisma.$transaction(async (tx) => {
-      await tx.comic.create({
-        data: {
-          title: parsed.title || name,
-          file: sanitizedName,
-          bookshelf: 'unread',
-          genre: parsed.genre || null,
-          brand: parsed.brand || null,
-          original: parsed.original || null,
-        },
-      })
+    return await _registerAll()
+  } finally {
+    running = false
+  }
+}
 
-      const unreadDir = `${comicPath}/unread`
-      if (!fs.existsSync(unreadDir)) {
-        fs.mkdirSync(unreadDir)
+async function _registerAll() {
+  if (!fs.existsSync(haystackDir)) return { registered: [], duplicated: [], errors: [] }
+
+  const entries = fs.readdirSync(haystackDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+
+  if (entries.length === 0) return { registered: [], duplicated: [], errors: [] }
+
+  // Batch lookup for existing comics
+  const sanitizedNames = entries.map((name) => sanitize(name))
+  const existingComics = await prisma.comic.findMany({
+    where: { file: { in: sanitizedNames } },
+    select: { id: true, bookshelf: true, file: true },
+  })
+  const existingByFile = new Map(existingComics.map((c) => [c.file, c]))
+
+  const registered: string[] = []
+  const duplicated: string[] = []
+  const errors: string[] = []
+
+  for (const name of entries) {
+    try {
+      const sanitizedName = sanitize(name)
+      const existing = existingByFile.get(sanitizedName)
+
+      if (existing) {
+        if (!fs.existsSync(duplicatesDir)) fs.mkdirSync(duplicatesDir)
+        const dest = `${duplicatesDir}/${name}`
+        if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true })
+        fs.renameSync(`${haystackDir}/${name}`, dest)
+        console.warn(`[register] duplicate moved to duplicates/: ${name} (id: ${existing.id}, bookshelf: ${existing.bookshelf})`)
+        duplicated.push(name)
+        continue
       }
 
-      fs.renameSync(haystackDir, `${unreadDir}/${sanitizedName}`)
-    })
+      const parsed = parseComicName(name)
 
-    return c.json({ message: 'register successful', data: { name: sanitizedName } }, 201)
-  } catch (e) {
-    console.error(e)
-    return c.json({ message: (e as Error).message, data: { name } }, 400)
+      await prisma.$transaction(async (tx) => {
+        await tx.comic.create({
+          data: {
+            title: parsed.title || name,
+            file: sanitizedName,
+            bookshelf: 'unread',
+            genre: parsed.genre || null,
+            brand: parsed.brand || null,
+            original: parsed.original || null,
+          },
+        })
+
+        if (!fs.existsSync(unreadDir)) fs.mkdirSync(unreadDir)
+        fs.renameSync(`${haystackDir}/${name}`, `${unreadDir}/${sanitizedName}`)
+      })
+
+      registered.push(name)
+    } catch (e) {
+      console.error(`[register] failed: ${name}`, e)
+      errors.push(name)
+    }
   }
+
+  return { registered, duplicated, errors }
+}
+
+app.post('/api/register', async (c) => {
+  const result = await registerAll()
+  return c.json(result)
 })
 
 export default app
