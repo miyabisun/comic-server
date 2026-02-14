@@ -27,12 +27,12 @@ export async function init() {
         brand TEXT,
         original TEXT,
         custom_path TEXT,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME NOT NULL,
         deleted_at DATETIME
       )
     `)
     await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX comics_file_key ON comics(file)`)
-    await prisma.$executeRawUnsafe(`CREATE INDEX comics_bookshelf_idx ON comics(bookshelf)`)
+    await prisma.$executeRawUnsafe(`CREATE INDEX comics_bookshelf_created_idx ON comics(bookshelf, created_at DESC)`)
     await prisma.$executeRawUnsafe(`CREATE INDEX comics_brand_idx ON comics(brand)`)
     await prisma.$executeRawUnsafe(`CREATE INDEX comics_created_at_idx ON comics(created_at)`)
     console.log('Database initialized')

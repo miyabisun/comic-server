@@ -19,9 +19,12 @@ comic-server/
 │   │   ├── comics.ts       # CRUD /api/comics, GET /api/parse
 │   │   ├── bookshelves.ts  # GET /api/bookshelves/:name
 │   │   ├── brands.ts       # GET /api/brands/:name
+│   │   ├── duplicates.ts   # GET /api/duplicates
 │   │   └── register.ts     # POST /api/register
 │   ├── lib/                # Shared utilities
+│   │   ├── config.ts       # COMIC_PATH, DATABASE_URL
 │   │   ├── db.ts           # Prisma client
+│   │   ├── init.ts         # DB/directory initialization
 │   │   ├── parse-comic-name.ts
 │   │   ├── sanitize-filename.ts
 │   │   └── normalize-brackets.ts

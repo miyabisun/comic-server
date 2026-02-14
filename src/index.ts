@@ -20,6 +20,9 @@ await init()
 
 const port = Number(process.env.PORT) || 3000
 const basePath = (process.env.BASE_PATH || '').replace(/\/+$/, '')
+if (basePath && !/^\/[\w\-\/]*$/.test(basePath)) {
+  throw new Error(`Invalid BASE_PATH: ${basePath}`)
+}
 
 const app = new Hono()
 
@@ -66,8 +69,8 @@ sub.get('/images/*', async (c) => {
   })
 })
 
-// Serve built frontend static files
-sub.use('/*', serveStatic({
+// Serve built frontend static files (assets only; index.html goes through SPA fallback)
+sub.use('/assets/*', serveStatic({
   root: './client/build',
   rewriteRequestPath: (path) => path.startsWith(basePath) ? path.slice(basePath.length) : path,
 }))
@@ -77,6 +80,7 @@ sub.get('*', async (c) => {
   const indexPath = path.join(process.cwd(), 'client/build/index.html')
   if (fs.existsSync(indexPath)) {
     let html = fs.readFileSync(indexPath, 'utf-8')
+    html = html.replace('<head>', `<head>\n\t\t<base href="${basePath}/">`)
     html = html.replace('window.__BASE_PATH__ = ""', `window.__BASE_PATH__ = ${JSON.stringify(basePath)}`)
     return c.html(html)
   }
@@ -95,10 +99,7 @@ serve({ fetch: app.fetch, port })
 // Auto-register from haystack/ every 60 seconds
 setInterval(async () => {
   try {
-    const result = await registerAll()
-    if (result.registered.length || result.duplicated.length) {
-      console.log(`[polling] registered: ${result.registered.length}, duplicated: ${result.duplicated.length}`)
-    }
+    await registerAll()
   } catch (e) {
     console.error('[polling] register failed:', e)
   }

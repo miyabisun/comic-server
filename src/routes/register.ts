@@ -78,11 +78,16 @@ async function _registerAll() {
         fs.renameSync(`${haystackDir}/${name}`, `${unreadDir}/${sanitizedName}`)
       })
 
+      console.log(`[register] registered: ${name} -> unread/${sanitizedName}`)
       registered.push(name)
     } catch (e) {
       console.error(`[register] failed: ${name}`, e)
       errors.push(name)
     }
+  }
+
+  if (registered.length || duplicated.length || errors.length) {
+    console.log(`[register] summary: ${registered.length} registered, ${duplicated.length} duplicated, ${errors.length} errors`)
   }
 
   return { registered, duplicated, errors }

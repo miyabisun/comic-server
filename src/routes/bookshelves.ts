@@ -17,10 +17,12 @@ app.get('/api/bookshelves', async (c) => {
 app.get('/api/bookshelves/:name', async (c) => {
   const { name } = c.req.param()
 
-  const result = await prisma.comic.findMany({
-    where: { bookshelf: name },
-    orderBy: { created_at: 'desc' },
-  })
+  const result = await prisma.$queryRaw`
+    SELECT id, title, file, bookshelf, brand, created_at, deleted_at
+    FROM comics
+    WHERE bookshelf = ${name}
+    ORDER BY created_at DESC
+  `
 
   return c.json(result)
 })

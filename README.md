@@ -111,6 +111,63 @@ COMIC_PATH/
 └── deleted/     # Soft-deleted
 ```
 
+## Usage
+
+### 1. Start the server
+
+All bookshelf directories (including `haystack/`) are created automatically on first startup.
+
+### 2. Add comics to `haystack/`
+
+Place folders containing image files (`.jpg`, `.png`) into the `haystack/` directory.
+
+Folder names should follow the format `(genre) [brand] title (original)`:
+
+```
+haystack/
+├── (同人誌) [Circle Name] My Comic Title (Original Work)/
+│   ├── 001.jpg
+│   ├── 002.jpg
+│   └── ...
+├── (成年コミック) [Author Name] Another Title [DL版]/
+│   └── ...
+└── (同人CG集) [Studio Name] CG Collection Name (Series Name)/
+    └── ...
+```
+
+Each part is parsed automatically into database fields:
+
+| Part | Example | DB field |
+|------|---------|----------|
+| `(genre)` | `(同人誌)` | `genre` |
+| `[brand]` | `[Circle Name]` | `brand` |
+| title | `My Comic Title` | `title` |
+| `(original)` | `(Original Work)` | `original` |
+
+### 3. Wait for auto-registration
+
+The server scans `haystack/` every 60 seconds. Each folder is:
+
+1. Parsed to extract metadata from the folder name
+2. Registered in the database as `unread`
+3. Moved from `haystack/` to `unread/`
+
+If a comic with the same name already exists, the folder is moved to `duplicates/` instead.
+
+You can also trigger registration immediately via `POST /api/register`.
+
+### 4. Browse and rate
+
+Open the web UI, navigate to the `unread` bookshelf, and click a comic to read it. Tap the stars to rate and move comics between bookshelves:
+
+| Stars | Bookshelf |
+|-------|-----------|
+| 1 | trash |
+| 2 | hold |
+| 3 | like |
+| 4 | favorite |
+| 5 | legend |
+
 ## Documentation
 
 - [Development Guide](docs/development.md) — Local setup, build, and project structure

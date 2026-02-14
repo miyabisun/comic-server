@@ -132,18 +132,18 @@ Search comics by brand name. Splits the name by delimiters (`()、`) and searche
 
 ### `POST /api/register`
 
-Register a comic from the `haystack/` directory. Parses metadata from the directory name, sanitizes the filename, and moves it to `unread/`.
+Scan the `haystack/` directory and register all comic directories found. For each directory, parses metadata from the name, sanitizes the filename, and moves it to `unread/`. Duplicates are moved to `duplicates/`.
 
-**Request body**:
+**Request body**: None
+
+**Response**:
 ```json
 {
-  "name": "directory name in haystack/"
+  "registered": ["dir1", "dir2"],
+  "duplicated": ["dir3"],
+  "errors": ["dir4"]
 }
 ```
-
-**Response**: `201 { message, data: { name } }`
-
-If the comic already exists, removes the haystack directory and returns `200` with `deduplicated: true`.
 
 ## Images
 
