@@ -4,86 +4,24 @@
 
 画像フォルダを指定するだけで、本棚のように分類・レビューしながら読むことができます。
 
-## 使い方 (Docker + Nginx)
-
-推奨構成: Nginx が画像を直接配信し、comic-server が API と SPA を処理します。
-
-1. `docker-compose.yml` を作成:
-
-```yaml
-services:
-  comic-server:
-    image: ghcr.io/miyabisun/comic-server:latest
-    environment:
-      - COMIC_PATH=/comics
-      - PORT=3000
-      - BASE_PATH=/comic
-    volumes:
-      - /path/to/comics:/comics       # ← コミック画像フォルダのパスに置き換え
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - /path/to/comics:/var/www/images:ro   # ← 上と同じパス
-    depends_on:
-      - comic-server
-    restart: unless-stopped
-```
-
-2. `nginx.conf` を作成:
-
-```nginx
-events {
-    worker_connections 1024;
-}
-
-http {
-    include       mime.types;
-    sendfile      on;
-
-    upstream comic {
-        server comic-server:3000;
-    }
-
-    server {
-        listen 80;
-
-        # 画像ファイルを Nginx で直接配信 (Node.js をバイパス)
-        location /comic/images/ {
-            alias /var/www/images/;
-            expires 1d;
-            add_header Cache-Control "public, immutable";
-        }
-
-        # アプリケーション (API + SPA)
-        location = /comic {
-            return 301 /comic/;
-        }
-        location /comic/ {
-            proxy_pass http://comic/comic/;
-            proxy_http_version 1.1;
-            proxy_set_header Host $http_host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-}
-```
-
-3. 起動:
+## Quick Start (Docker)
 
 ```bash
-docker compose up -d
+docker run -p 3000:3000 -v /path/to/comics:/comics ghcr.io/miyabisun/comic-server:latest
 ```
 
-4. ブラウザで `http://localhost/comic/` を開く。
+ブラウザで `http://localhost:3000` を開く。
 
-> Nginx なしのシンプルな構成については [リバースプロキシ設定](docs/reverse-proxy.md#standalone-without-nginx) を参照。
+## Quick Start (Node.js)
+
+```bash
+npm install && npm run build:client
+COMIC_PATH=/path/to/comics npm start
+```
+
+ブラウザで `http://localhost:3000` を開く。
+
+> Nginx でサブパス配下にデプロイする場合は [リバースプロキシ設定](docs/reverse-proxy.md) を参照。
 
 ## 設定
 
