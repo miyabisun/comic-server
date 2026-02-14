@@ -16,7 +16,6 @@ services:
     image: ghcr.io/miyabisun/comic-server:latest
     environment:
       - COMIC_PATH=/comics
-      - PORT=3000
       - BASE_PATH=/comic
     volumes:
       - /path/to/comics:/comics       # Replace with your comic folder path
@@ -104,33 +103,4 @@ comic-deploy:
 
 ## Standalone (without Nginx)
 
-For simple setups without a reverse proxy:
-
-### Docker Compose
-
-```yaml
-services:
-  comic-server:
-    image: ghcr.io/miyabisun/comic-server:latest
-    ports:
-      - "3000:3000"
-    volumes:
-      - /path/to/comics:/comics
-    environment:
-      - COMIC_PATH=/comics
-      - PORT=3000
-```
-
-### Local Build
-
-```bash
-npm run build:client
-COMIC_PATH=/path/to/comics npm start
-```
-
-With subpath:
-
-```bash
-npm run build:client
-BASE_PATH=/comic COMIC_PATH=/path/to/comics npm start
-```
+For simple setups without a reverse proxy, see [Docker Compose docs](docker-compose.md).

@@ -42,10 +42,10 @@ COMIC_PATH=/path/to/comics npm start
 COMIC_PATH/
 ├── haystack/    # 取り込み待ち (ここに置くと登録できる)
 ├── unread/      # 未読
-├── trash/       # いまいち
 ├── hold/        # 保留
 ├── like/        # 良い
 ├── favorite/    # お気に入り
+├── love/        # とても好き
 ├── legend/      # 殿堂入り
 └── deleted/     # 削除済み
 ```
@@ -101,14 +101,15 @@ haystack/
 
 | 星 | 本棚 |
 |----|------|
-| 1 | trash (いまいち) |
-| 2 | hold (保留) |
-| 3 | like (良い) |
-| 4 | favorite (お気に入り) |
+| 1 | hold (保留) |
+| 2 | like (良い) |
+| 3 | favorite (お気に入り) |
+| 4 | love (とても好き) |
 | 5 | legend (殿堂入り) |
 
 ## 詳細ドキュメント
 
-- [開発ガイド](docs/development.md) — ローカルでの開発・ビルド方法
+- [Docker Compose](docs/docker-compose.md) — Docker Compose でのデプロイ方法
 - [リバースプロキシ設定](docs/reverse-proxy.md) — Nginx 等でサブパス配下にデプロイする方法
+- [開発ガイド](docs/development.md) — ローカルでの開発・ビルド方法
 - [API リファレンス](docs/api.md) — REST API の仕様

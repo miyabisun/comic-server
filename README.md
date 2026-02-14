@@ -41,10 +41,10 @@ Place comic folders (containing PNG/JPEG images) inside bookshelf directories un
 COMIC_PATH/
 ├── haystack/    # Staging area (drop folders here to register)
 ├── unread/      # Registered, not yet read
-├── trash/       # Low quality
 ├── hold/        # On hold
 ├── like/        # Good
 ├── favorite/    # Great
+├── love/        # Excellent
 ├── legend/      # Best
 └── deleted/     # Soft-deleted
 ```
@@ -100,14 +100,15 @@ Open the web UI, navigate to the `unread` bookshelf, and click a comic to read i
 
 | Stars | Bookshelf |
 |-------|-----------|
-| 1 | trash |
-| 2 | hold |
-| 3 | like |
-| 4 | favorite |
+| 1 | hold |
+| 2 | like |
+| 3 | favorite |
+| 4 | love |
 | 5 | legend |
 
 ## Documentation
 
-- [Development Guide](docs/development.md) — Local setup, build, and project structure
+- [Docker Compose](docs/docker-compose.md) — Deploying with Docker Compose
 - [Reverse Proxy](docs/reverse-proxy.md) — Deploying under a subpath with Nginx
+- [Development Guide](docs/development.md) — Local setup, build, and project structure
 - [API Reference](docs/api.md) — REST API specification
