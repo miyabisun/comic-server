@@ -75,7 +75,7 @@
 					<th class="date">registered</th>
 					<th class="review">
 						<ul>
-							{#each ['trash', 'hold', 'like', 'favorite', 'legend'] as n}
+							{#each ['hold', 'like', 'favorite', 'love', 'legend'] as n}
 								<li onclick={() => changeAllBookshelf(n)}>★</li>
 							{/each}
 						</ul>

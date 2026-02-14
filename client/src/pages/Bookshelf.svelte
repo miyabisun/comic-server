@@ -81,7 +81,7 @@
 						<th class="date" onclick={() => sortKey = null}>registered</th>
 						<th class="review">review</th>
 						<th class="delete">
-							{#if name === 'unread' || name === 'trash'}
+							{#if name === 'unread' || name === 'hold'}
 								<span onclick={deleteAll}>🗑</span>
 							{/if}
 						</th>
@@ -114,7 +114,7 @@
 								{/if}
 							</td>
 							<td class="delete">
-								{#if (name === 'unread' || name === 'trash') && !isDeleted}
+								{#if (name === 'unread' || name === 'hold') && !isDeleted}
 									<span onclick={() => deleteComic(comic)}>🗑</span>
 								{/if}
 							</td>

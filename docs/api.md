@@ -107,9 +107,9 @@ Get record counts for each bookshelf.
   "like": 3369,
   "favorite": 2857,
   "hold": 1439,
+  "love": 520,
   "legend": 568,
   "haystack": 20,
-  "trash": 16,
   "deleted": 5
 }
 ```

@@ -5,7 +5,7 @@
 <header>
 	<ul class="breadcrumbs">
 		<li><a href="{link('/')}">comic-server</a></li>
-		{#each ['unread', 'legend', 'favorite', 'like', 'hold', 'trash', 'deleted'] as shelf}
+		{#each ['unread', 'legend', 'love', 'favorite', 'like', 'hold', 'deleted'] as shelf}
 			<li><a href="{link('/bookshelves/' + shelf)}">{shelf}</a></li>
 		{/each}
 	</ul>

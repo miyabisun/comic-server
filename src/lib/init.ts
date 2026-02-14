@@ -2,7 +2,7 @@ import fs from 'fs'
 import { comicPath } from './config.js'
 import { prisma } from './db.js'
 
-const BOOKSHELF_DIRS = ['haystack', 'unread', 'trash', 'hold', 'like', 'favorite', 'legend', 'deleted']
+const BOOKSHELF_DIRS = ['haystack', 'unread', 'hold', 'like', 'favorite', 'love', 'legend', 'deleted']
 
 export async function init() {
   // Create COMIC_PATH and bookshelf directories

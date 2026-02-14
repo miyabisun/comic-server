@@ -4,7 +4,7 @@
 	import config from '$lib/config.js';
 	import { addToast } from '$lib/toast.svelte.js';
 
-	const shelfOrder = ['unread', 'legend', 'favorite', 'like', 'hold', 'trash', 'deleted'];
+	const shelfOrder = ['unread', 'legend', 'love', 'favorite', 'like', 'hold', 'deleted'];
 
 	let bookshelves = $state(null);
 	let duplicates = $state(null);

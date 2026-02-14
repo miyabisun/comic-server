@@ -5,7 +5,7 @@
 </script>
 
 <ul>
-	{#each ['trash', 'hold', 'like', 'favorite', 'legend'] as name}
+	{#each ['hold', 'like', 'favorite', 'love', 'legend'] as name}
 		<li
 			class:up={levelGe(bookshelf, name)}
 			onclick={() => onchange(name)}

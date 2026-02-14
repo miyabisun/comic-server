@@ -142,7 +142,7 @@
 			<div class="page">{imgPointer} / {comic.images.length}</div>
 			<div class="review">
 				<ul>
-					{#each ['trash', 'hold', 'like', 'favorite', 'legend'] as n}
+					{#each ['hold', 'like', 'favorite', 'love', 'legend'] as n}
 						<li
 							class:up={levelGe(comic.bookshelf, n)}
 							onclick={() => changeBookshelf(n)}
