@@ -1,7 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import { Hono } from 'hono'
-import { prisma } from '../lib/db.js'
+import { inArray } from 'drizzle-orm'
+import { db } from '../db/index.js'
+import { comics } from '../db/schema.js'
 import { comicPath } from '../lib/config.js'
 import sanitize from '../lib/sanitize-filename.js'
 
@@ -9,7 +11,7 @@ const app = new Hono()
 
 const duplicatesDir = path.join(comicPath, 'duplicates')
 
-app.get('/api/duplicates', async (c) => {
+app.get('/api/duplicates', (c) => {
   if (!fs.existsSync(duplicatesDir)) {
     return c.json([])
   }
@@ -18,11 +20,14 @@ app.get('/api/duplicates', async (c) => {
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
 
+  if (entries.length === 0) return c.json([])
+
   const sanitizedMap = new Map(entries.map((name) => [sanitize(name), name]))
-  const existingComics = await prisma.comic.findMany({
-    where: { file: { in: [...sanitizedMap.keys()] } },
-    select: { id: true, bookshelf: true, file: true },
-  })
+  const existingComics = db.select({
+    id: comics.id,
+    bookshelf: comics.bookshelf,
+    file: comics.file,
+  }).from(comics).where(inArray(comics.file, [...sanitizedMap.keys()])).all()
   const comicByFile = new Map(existingComics.map((c) => [c.file, c]))
 
   const results = entries.map((name) => {
@@ -37,7 +42,7 @@ app.get('/api/duplicates', async (c) => {
   return c.json(results)
 })
 
-app.delete('/api/duplicates/:name', async (c) => {
+app.delete('/api/duplicates/:name', (c) => {
   const { name } = c.req.param()
 
   const targetDir = path.resolve(duplicatesDir, decodeURIComponent(name))

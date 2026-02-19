@@ -4,9 +4,9 @@
 
 | Layer | Technology | Role |
 |---|---|---|
-| Backend | Hono (Node.js) | REST API, image serving, static file hosting |
+| Backend | Hono (Bun) | REST API, image serving, static file hosting |
 | Frontend | Svelte 5 + Vite (SPA) | Browser UI, built as static files |
-| Database | SQLite via Prisma | Comic metadata storage |
+| Database | SQLite via Drizzle ORM | Comic metadata storage |
 | Image storage | Local filesystem | Mounted directory of comic image folders |
 
 ## Project Structure
@@ -21,10 +21,13 @@ comic-server/
 │   │   ├── brands.ts       # GET /api/brands/:name
 │   │   ├── duplicates.ts   # GET /api/duplicates
 │   │   └── register.ts     # POST /api/register
+│   ├── db/                 # Database layer
+│   │   ├── index.ts        # Drizzle + bun:sqlite connection
+│   │   └── schema.ts       # Drizzle schema definition
 │   ├── lib/                # Shared utilities
-│   │   ├── config.ts       # COMIC_PATH, DATABASE_URL
-│   │   ├── db.ts           # Prisma client
+│   │   ├── config.ts       # COMIC_PATH, DATABASE_PATH
 │   │   ├── init.ts         # DB/directory initialization
+│   │   ├── spa.ts          # SPA index.html serving
 │   │   ├── parse-comic-name.ts
 │   │   ├── sanitize-filename.ts
 │   │   └── normalize-brackets.ts
@@ -44,25 +47,22 @@ comic-server/
 │   │       ├── config.js
 │   │       └── components/
 │   └── vite.config.js
-├── prisma/
-│   └── schema.prisma       # Database schema (SQLite)
+├── drizzle.config.ts       # Drizzle Kit configuration
 ├── Dockerfile
-├── docker-compose.yml
 └── .github/workflows/
     └── release.yml         # CI/CD → ghcr.io
 ```
 
 ## Prerequisites
 
-- Node.js 20+
-- npm
+- Bun
 
 ## Setup
 
 ```bash
 # Install dependencies
-npm install
-cd client && npm install && cd ..
+bun install
+cd client && bun install && cd ..
 ```
 
 The database and bookshelf directories are created automatically on first server startup.
@@ -73,10 +73,10 @@ Start backend and frontend in separate terminals:
 
 ```bash
 # Terminal 1: Backend (port 3000)
-COMIC_PATH=/path/to/comics npm run dev
+COMIC_PATH=/path/to/comics bun run dev
 
 # Terminal 2: Frontend (port 5173, proxies API to backend)
-npm run dev:client
+cd client && bunx vite dev
 ```
 
 Open `http://localhost:5173`. The Vite dev server proxies `/api` and `/images` requests to the backend.
@@ -84,23 +84,21 @@ Open `http://localhost:5173`. The Vite dev server proxies `/api` and `/images` r
 ## Production Build
 
 ```bash
-npm run build:client
-COMIC_PATH=/path/to/comics npm start
+bun run build:client
+COMIC_PATH=/path/to/comics bun start
 ```
 
 The built frontend is served by Hono at `http://localhost:3000`.
 
-## npm Scripts
+## Scripts
 
 | Script | Description |
 |---|---|
-| `npm run dev` | Start backend with tsx |
-| `npm run dev:client` | Start frontend dev server (Vite) |
-| `npm run build:client` | Build frontend for production |
-| `npm run build` | Alias for `build:client` |
-| `npm start` | Start production server |
-| `npm run db:push` | Sync Prisma schema to database |
-| `npm run db:migrate` | Create Prisma migration |
+| `bun run dev` | Start backend + frontend watch build |
+| `bun run build:client` | Build frontend for production |
+| `bun run build` | Alias for `build:client` |
+| `bun start` | Start production server |
+| `bun test` | Run tests |
 
 ## Docker
 

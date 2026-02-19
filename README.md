@@ -12,11 +12,11 @@ docker run -p 3000:3000 -v /path/to/comics:/comics ghcr.io/miyabisun/comic-serve
 
 Open `http://localhost:3000` in your browser.
 
-## Quick Start (Node.js)
+## Quick Start (Bun)
 
 ```bash
-npm install && npm run build:client
-COMIC_PATH=/path/to/comics npm start
+bun install && bun run build:client
+COMIC_PATH=/path/to/comics bun start
 ```
 
 Open `http://localhost:3000` in your browser.
@@ -28,6 +28,7 @@ Open `http://localhost:3000` in your browser.
 | Variable | Default | Description |
 |---|---|---|
 | `COMIC_PATH` | `./comics` | Root directory for comic image folders |
+| `DATABASE_PATH` | `COMIC_PATH/comic.db` | Path to SQLite database file |
 | `PORT` | `3000` | Server port |
 | `BASE_PATH` | (empty) | Path prefix for reverse proxy deployment (e.g., `/comic`). Runtime only — no rebuild needed. |
 

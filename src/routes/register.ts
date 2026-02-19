@@ -1,6 +1,8 @@
 import fs from 'fs'
 import { Hono } from 'hono'
-import { prisma } from '../lib/db.js'
+import { inArray } from 'drizzle-orm'
+import { db } from '../db/index.js'
+import { comics } from '../db/schema.js'
 import { comicPath } from '../lib/config.js'
 import parseComicName from '../lib/parse-comic-name.js'
 import sanitize from '../lib/sanitize-filename.js'
@@ -13,18 +15,18 @@ const unreadDir = `${comicPath}/unread`
 
 let running = false
 
-export async function registerAll() {
+export function registerAll() {
   if (running) return { registered: [], duplicated: [], errors: [] }
   running = true
 
   try {
-    return await _registerAll()
+    return _registerAll()
   } finally {
     running = false
   }
 }
 
-async function _registerAll() {
+function _registerAll() {
   if (!fs.existsSync(haystackDir)) return { registered: [], duplicated: [], errors: [] }
 
   const entries = fs.readdirSync(haystackDir, { withFileTypes: true })
@@ -35,10 +37,11 @@ async function _registerAll() {
 
   // Batch lookup for existing comics
   const sanitizedNames = entries.map((name) => sanitize(name))
-  const existingComics = await prisma.comic.findMany({
-    where: { file: { in: sanitizedNames } },
-    select: { id: true, bookshelf: true, file: true },
-  })
+  const existingComics = db.select({
+    id: comics.id,
+    bookshelf: comics.bookshelf,
+    file: comics.file,
+  }).from(comics).where(inArray(comics.file, sanitizedNames)).all()
   const existingByFile = new Map(existingComics.map((c) => [c.file, c]))
 
   const registered: string[] = []
@@ -62,17 +65,15 @@ async function _registerAll() {
 
       const parsed = parseComicName(name)
 
-      await prisma.$transaction(async (tx) => {
-        await tx.comic.create({
-          data: {
-            title: parsed.title || name,
-            file: sanitizedName,
-            bookshelf: 'unread',
-            genre: parsed.genre || null,
-            brand: parsed.brand || null,
-            original: parsed.original || null,
-          },
-        })
+      db.transaction((tx) => {
+        tx.insert(comics).values({
+          title: parsed.title || name,
+          file: sanitizedName,
+          bookshelf: 'unread',
+          genre: parsed.genre || null,
+          brand: parsed.brand || null,
+          original: parsed.original || null,
+        }).run()
 
         if (!fs.existsSync(unreadDir)) fs.mkdirSync(unreadDir)
         fs.renameSync(`${haystackDir}/${name}`, `${unreadDir}/${sanitizedName}`)
@@ -93,8 +94,8 @@ async function _registerAll() {
   return { registered, duplicated, errors }
 }
 
-app.post('/api/register', async (c) => {
-  const result = await registerAll()
+app.post('/api/register', (c) => {
+  const result = registerAll()
   return c.json(result)
 })
 

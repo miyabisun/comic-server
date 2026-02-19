@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'bun:test'
 import fs from 'fs'
 import path from 'path'
 import { Hono } from 'hono'
-import { serveStatic } from '@hono/node-server/serve-static'
+import { serveStatic } from 'hono/bun'
 
 function createApp(basePath: string) {
   const app = new Hono()
@@ -15,7 +15,7 @@ function createApp(basePath: string) {
   }))
 
   // SPA fallback
-  sub.get('*', async (c) => {
+  sub.get('*', (c) => {
     const indexPath = path.join(process.cwd(), 'client/build/index.html')
     let html = fs.readFileSync(indexPath, 'utf-8')
     html = html.replace('<head>', `<head>\n\t\t<base href="${basePath}/">`)

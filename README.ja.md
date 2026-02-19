@@ -12,11 +12,11 @@ docker run -p 3000:3000 -v /path/to/comics:/comics ghcr.io/miyabisun/comic-serve
 
 ブラウザで `http://localhost:3000` を開く。
 
-## Quick Start (Node.js)
+## Quick Start (Bun)
 
 ```bash
-npm install && npm run build:client
-COMIC_PATH=/path/to/comics npm start
+bun install && bun run build:client
+COMIC_PATH=/path/to/comics bun start
 ```
 
 ブラウザで `http://localhost:3000` を開く。
@@ -28,6 +28,7 @@ COMIC_PATH=/path/to/comics npm start
 | 環境変数 | デフォルト | 説明 |
 |---|---|---|
 | `COMIC_PATH` | `./comics` | コミック画像フォルダのパス |
+| `DATABASE_PATH` | `COMIC_PATH/comic.db` | SQLite データベースファイルのパス |
 | `PORT` | `3000` | サーバーのポート番号 |
 | `BASE_PATH` | (なし) | リバースプロキシ配下で使う場合のパス (例: `/comic`)。ランタイム設定のみで再ビルド不要。 |
 

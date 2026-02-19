@@ -2,11 +2,15 @@ import fs from 'fs'
 import readdir from 'fs-readdir-recursive'
 import { naturalSort } from 'smart-sort'
 import { Hono } from 'hono'
-import type { Comic } from '@prisma/client'
-import { prisma } from '../lib/db.js'
+import { eq, desc } from 'drizzle-orm'
+import type { InferSelectModel } from 'drizzle-orm'
+import { db } from '../db/index.js'
+import { comics } from '../db/schema.js'
 import { comicPath } from '../lib/config.js'
 import sanitizeFilename from '../lib/sanitize-filename.js'
 import parseComicName from '../lib/parse-comic-name.js'
+
+type Comic = InferSelectModel<typeof comics>
 
 function toCustomPath(comic: Comic): RegExp | null {
   try {
@@ -24,10 +28,8 @@ function toCustomPath(comic: Comic): RegExp | null {
 const app = new Hono()
 
 // List all comics
-app.get('/api/comics', async (c) => {
-  const result = await prisma.comic.findMany({
-    orderBy: { created_at: 'desc' },
-  })
+app.get('/api/comics', (c) => {
+  const result = db.select().from(comics).orderBy(desc(comics.created_at)).all()
   return c.json(result)
 })
 
@@ -41,7 +43,7 @@ app.get('/api/parse', (c) => {
 })
 
 // Check existence by file (sanitizes input to match DB values)
-app.get('/api/comics/exist', async (c) => {
+app.get('/api/comics/exist', (c) => {
   const file = c.req.query('file')
 
   if (!file) {
@@ -49,9 +51,7 @@ app.get('/api/comics/exist', async (c) => {
   }
 
   try {
-    const comic = await prisma.comic.findFirst({
-      where: { file: { equals: sanitizeFilename(file) } },
-    })
+    const comic = db.select().from(comics).where(eq(comics.file, sanitizeFilename(file))).get()
     return c.json({ exists: comic != null, comic })
   } catch (e) {
     console.error('[ERROR] Failed to check existence:', e)
@@ -60,12 +60,12 @@ app.get('/api/comics/exist', async (c) => {
 })
 
 // Get comic by id with images
-app.get('/api/comics/:id', async (c) => {
+app.get('/api/comics/:id', (c) => {
   const id = Number(c.req.param('id'))
   if (isNaN(id)) {
     return c.json({ error: 'Invalid id' }, 400)
   }
-  const comic = await prisma.comic.findUnique({ where: { id } })
+  const comic = db.select().from(comics).where(eq(comics.id, id)).get()
   if (!comic) {
     return c.json({ error: 'Not found' }, 404)
   }
@@ -101,7 +101,7 @@ app.put('/api/comics/:id', async (c) => {
   if (isNaN(id)) {
     return c.json({ error: 'Invalid id' }, 400)
   }
-  const comic = await prisma.comic.findUnique({ where: { id } })
+  const comic = db.select().from(comics).where(eq(comics.id, id)).get()
   if (!comic) {
     return c.json({ error: 'Not found' }, 404)
   }
@@ -128,7 +128,7 @@ app.put('/api/comics/:id', async (c) => {
   const body = await c.req.json()
   const comicFile = (body.file || comic.file).replaceAll('/', '\\/')
   if (comicFile !== comic.file) {
-    const row = await prisma.comic.findUnique({ where: { file: comicFile } })
+    const row = db.select().from(comics).where(eq(comics.file, comicFile)).get()
     // Check if the found row is not the current comic being updated
     if (row && row.id !== id) {
       return c.json({
@@ -139,20 +139,16 @@ app.put('/api/comics/:id', async (c) => {
   }
 
   try {
-    // NOTE: fs operations inside transaction won't rollback if DB fails after rename
-    await prisma.$transaction(async (tx) => {
-      await tx.comic.update({
-        where: { id },
-        data: {
-          title: body.title || comic.title,
-          file: comicFile,
-          bookshelf: body.bookshelf || comic.bookshelf,
-          genre: body.genre,
-          brand: body.brand,
-          original: body.original,
-          custom_path: body.custom_path,
-        },
-      })
+    db.transaction((tx) => {
+      tx.update(comics).set({
+        title: body.title || comic.title,
+        file: comicFile,
+        bookshelf: body.bookshelf || comic.bookshelf,
+        genre: body.genre,
+        brand: body.brand,
+        original: body.original,
+        custom_path: body.custom_path,
+      }).where(eq(comics.id, id)).run()
 
       // path rename
       const after = `${comicPath}/${body.bookshelf || comic.bookshelf}/${comicFile}`
@@ -175,12 +171,12 @@ app.put('/api/comics/:id', async (c) => {
 })
 
 // Delete comic (soft delete - move to 'deleted' bookshelf)
-app.delete('/api/comics/:id', async (c) => {
+app.delete('/api/comics/:id', (c) => {
   const id = Number(c.req.param('id'))
   if (isNaN(id)) {
     return c.json({ error: 'Invalid id' }, 400)
   }
-  const comic = await prisma.comic.findUnique({ where: { id } })
+  const comic = db.select().from(comics).where(eq(comics.id, id)).get()
   if (!comic) {
     return c.json({ error: 'Not found' }, 404)
   }
@@ -192,15 +188,12 @@ app.delete('/api/comics/:id', async (c) => {
   }
 
   try {
-    // NOTE: fs operations inside transaction won't rollback if DB fails after rename
-    await prisma.$transaction(async (tx) => {
-      await tx.comic.update({
-        where: { id },
-        data: {
-          bookshelf: 'deleted',
-          deleted_at: new Date(),
-        },
-      })
+    db.transaction((tx) => {
+      tx.update(comics).set({
+        bookshelf: 'deleted',
+        deleted_at: new Date().toISOString(),
+      }).where(eq(comics.id, id)).run()
+
       const deletedDir = `${comicPath}/deleted`
       if (!fs.existsSync(deletedDir)) {
         fs.mkdirSync(deletedDir)
@@ -231,9 +224,17 @@ app.post('/api/comics', async (c) => {
   }
 
   try {
-    const result = await prisma.comic.upsert({
-      where: { file: body.file },
-      update: {
+    const result = db.insert(comics).values({
+      title: body.title,
+      file: body.file,
+      bookshelf: body.bookshelf || 'unread',
+      genre: body.genre,
+      brand: body.brand,
+      original: body.original,
+      custom_path: body.custom_path,
+    }).onConflictDoUpdate({
+      target: comics.file,
+      set: {
         title: body.title,
         bookshelf: body.bookshelf || 'unread',
         genre: body.genre,
@@ -241,16 +242,8 @@ app.post('/api/comics', async (c) => {
         original: body.original,
         custom_path: body.custom_path,
       },
-      create: {
-        title: body.title,
-        file: body.file,
-        bookshelf: body.bookshelf || 'unread',
-        genre: body.genre,
-        brand: body.brand,
-        original: body.original,
-        custom_path: body.custom_path,
-      },
-    })
+    }).returning().get()
+
     return c.json(result, 201)
   } catch (e) {
     console.error(e)
