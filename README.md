@@ -12,11 +12,14 @@ docker run -p 3000:3000 -v /path/to/comics:/comics ghcr.io/miyabisun/comic-serve
 
 Open `http://localhost:3000` in your browser.
 
-## Quick Start (Bun)
+## Quick Start (Native)
 
 ```bash
-bun install && bun run build:client
-COMIC_PATH=/path/to/comics bun start
+# Build frontend
+cd client && npm install && npm run build && cd ..
+# Build and run server
+cargo build --release
+COMIC_PATH=/path/to/comics ./target/release/comic-server
 ```
 
 Open `http://localhost:3000` in your browser.

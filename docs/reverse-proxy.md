@@ -51,7 +51,7 @@ http {
     server {
         listen 80;
 
-        # Static images - served directly by Nginx (bypasses Node.js)
+        # Static images - served directly by Nginx (bypasses the backend)
         location /comic/images/ {
             alias /var/www/images/;
             expires 1d;
@@ -76,7 +76,7 @@ http {
 
 Key points:
 
-- `location /comic/images/` must appear **before** `location /comic/` so Nginx serves images directly via `sendfile` without going through Node.js
+- `location /comic/images/` must appear **before** `location /comic/` so Nginx serves images directly via `sendfile` without going through the backend
 - Both the `location` and `proxy_pass` trailing `/` are required for correct path forwarding
 - `location = /comic` redirects bare `/comic` to `/comic/` for consistent routing
 - The comic folder is mounted **read-only** (`:ro`) in Nginx since it only reads images. comic-server mounts the same folder with write access for registration and organization

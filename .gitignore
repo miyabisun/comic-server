@@ -1,7 +1,7 @@
+target
 node_modules
 .env
 *.db
 *.db-journal
-dist
 client/build
 client/node_modules

@@ -4,79 +4,72 @@
 
 | Layer | Technology | Role |
 |---|---|---|
-| Backend | Hono (Bun) | REST API, image serving, static file hosting |
+| Backend | Rust (Axum + rusqlite) | REST API, image serving, static file hosting |
 | Frontend | Svelte 5 + Vite (SPA) | Browser UI, built as static files |
-| Database | SQLite via Drizzle ORM | Comic metadata storage |
+| Database | SQLite via rusqlite | Comic metadata storage |
 | Image storage | Local filesystem | Mounted directory of comic image folders |
 
 ## Project Structure
 
 ```
 comic-server/
-├── src/                    # Backend (TypeScript)
-│   ├── index.ts            # Hono server entry point
-│   ├── routes/             # API route handlers
-│   │   ├── comics.ts       # CRUD /api/comics, GET /api/parse
-│   │   ├── bookshelves.ts  # GET /api/bookshelves/:name
-│   │   ├── brands.ts       # GET /api/brands/:name
-│   │   ├── duplicates.ts   # GET /api/duplicates
-│   │   └── register.ts     # POST /api/register
-│   ├── db/                 # Database layer
-│   │   ├── index.ts        # Drizzle + bun:sqlite connection
-│   │   └── schema.ts       # Drizzle schema definition
-│   ├── lib/                # Shared utilities
-│   │   ├── config.ts       # COMIC_PATH, DATABASE_PATH
-│   │   ├── init.ts         # DB/directory initialization
-│   │   ├── spa.ts          # SPA index.html serving
-│   │   ├── parse-comic-name.ts
-│   │   ├── sanitize-filename.ts
-│   │   └── normalize-brackets.ts
-│   └── types.d.ts
-├── client/                 # Frontend (Svelte 5 + Vite)
-│   ├── index.html          # Vite entry HTML
+├── Cargo.toml
+├── src/                       # Backend (Rust)
+│   ├── main.rs                # Entry point (init, router, polling, serve)
+│   ├── config.rs              # Config (COMIC_PATH, DATABASE_PATH, PORT, BASE_PATH)
+│   ├── db.rs                  # rusqlite Connection init, PRAGMAs, Db type
+│   ├── models.rs              # Comic struct, request/response types
+│   ├── error.rs               # AppError enum, IntoResponse impl
+│   ├── init.rs                # Directory + table initialization
+│   ├── routes/
+│   │   ├── mod.rs             # Router construction
+│   │   ├── comics.rs          # GET/POST/PUT/DELETE /api/comics, /api/parse
+│   │   ├── bookshelves.rs     # GET /api/bookshelves/:name
+│   │   ├── brands.rs          # GET /api/brands/:name
+│   │   ├── register.rs        # POST /api/register
+│   │   ├── duplicates.rs      # GET/DELETE /api/duplicates
+│   │   ├── images.rs          # GET /images/* (static image serving)
+│   │   └── spa.rs             # SPA fallback + /assets/*
+│   └── helpers/
+│       ├── mod.rs
+│       ├── parse_comic_name.rs
+│       ├── sanitize_filename.rs
+│       ├── normalize_brackets.rs
+│       └── natural_sort.rs
+├── client/                    # Frontend (Svelte 5 + Vite) — unchanged
+│   ├── index.html
 │   ├── src/
-│   │   ├── main.js         # Svelte mount point
-│   │   ├── App.svelte      # Layout + router + global styles
-│   │   ├── pages/          # Page components
-│   │   │   ├── Home.svelte
-│   │   │   ├── Bookshelf.svelte
-│   │   │   ├── Brand.svelte
-│   │   │   └── Comic.svelte
-│   │   └── lib/            # Components, helpers
-│   │       ├── router.svelte.js  # Minimal SPA router
-│   │       ├── config.js
-│   │       └── components/
 │   └── vite.config.js
-├── drizzle.config.ts       # Drizzle Kit configuration
 ├── Dockerfile
 └── .github/workflows/
-    └── release.yml         # CI/CD → ghcr.io
+    └── release.yml            # CI/CD → ghcr.io
 ```
 
 ## Prerequisites
 
-- Bun
+- Rust (latest stable)
+- Node.js 22+ (for frontend build)
 
 ## Setup
 
 ```bash
-# Install dependencies
-bun install
-cd client && bun install && cd ..
+# Build frontend
+cd client && npm install && cd ..
+
+# Build backend
+cargo build
 ```
 
 The database and bookshelf directories are created automatically on first server startup.
 
 ## Development
 
-Start backend and frontend in separate terminals:
-
 ```bash
-# Terminal 1: Backend (port 3000)
-COMIC_PATH=/path/to/comics bun run dev
+# Terminal 1: Backend
+COMIC_PATH=/path/to/comics cargo run
 
-# Terminal 2: Frontend (port 5173, proxies API to backend)
-cd client && bunx vite dev
+# Terminal 2: Frontend dev server (port 5173, proxies API to backend)
+cd client && npx vite dev
 ```
 
 Open `http://localhost:5173`. The Vite dev server proxies `/api` and `/images` requests to the backend.
@@ -84,21 +77,12 @@ Open `http://localhost:5173`. The Vite dev server proxies `/api` and `/images` r
 ## Production Build
 
 ```bash
-bun run build:client
-COMIC_PATH=/path/to/comics bun start
+cd client && npm install && npm run build && cd ..
+cargo build --release
+COMIC_PATH=/path/to/comics ./target/release/comic-server
 ```
 
-The built frontend is served by Hono at `http://localhost:3000`.
-
-## Scripts
-
-| Script | Description |
-|---|---|
-| `bun run dev` | Start backend + frontend watch build |
-| `bun run build:client` | Build frontend for production |
-| `bun run build` | Alias for `build:client` |
-| `bun start` | Start production server |
-| `bun test` | Run tests |
+The built frontend is served by Axum at `http://localhost:3000`.
 
 ## Docker
 
@@ -112,7 +96,7 @@ docker build -t comic-server .
 
 Push to `main` triggers GitHub Actions (`.github/workflows/release.yml`):
 
-1. Builds Docker image
+1. Builds Docker image (3-stage: Node.js client build → Rust build → slim runtime)
 2. Pushes to `ghcr.io/miyabisun/comic-server:latest`
 
 Requires repository Settings > Actions > General > Workflow permissions set to "Read and write".

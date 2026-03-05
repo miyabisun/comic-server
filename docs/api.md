@@ -147,7 +147,7 @@ Scan the `haystack/` directory and register all comic directories found. For eac
 
 ## Images
 
-### `GET /images/:bookshelf/:file/:path`
+### `GET /images/*path`
 
 Serves comic image files directly from `COMIC_PATH`. Responses include `Cache-Control: public, max-age=86400`.
 

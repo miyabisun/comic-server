@@ -1,29 +1,34 @@
-# Stage 1: Build
-FROM oven/bun:1 AS builder
+# Stage 1: Client build (Node.js)
+FROM node:22-slim AS client-builder
+WORKDIR /app/client
+COPY client/package.json client/package-lock.json ./
+RUN npm ci
+COPY client/ ./
+RUN npm run build
+
+# Stage 2: Rust build
+FROM rust:1-slim-bookworm AS rust-builder
 WORKDIR /app
 
-# Server dependencies
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+# Cache dependencies
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir src && echo 'fn main() {}' > src/main.rs && \
+    cargo build --release && \
+    rm -rf src
 
-# Client build
-COPY client/package.json client/bun.lock ./client/
-RUN cd client && bun install --frozen-lockfile
-COPY client/ ./client/
-RUN cd client && bun run build
+# Build actual source
+COPY src/ ./src/
+RUN touch src/main.rs && cargo build --release
 
-# Assemble /dist
-RUN mkdir -p /dist/client && \
-    cp package.json bun.lock /dist/ && \
-    cp -r client/build /dist/client/
-COPY src/ /dist/src/
-RUN cd /dist && bun install --frozen-lockfile --production
-
-# Stage 2: Production runtime
-FROM oven/bun:1-slim
+# Stage 3: Runtime
+FROM debian:bookworm-slim
+RUN groupadd -r comic && useradd -r -g comic -d /app comic
 WORKDIR /app
-COPY --from=builder /dist ./
+COPY --from=rust-builder /app/target/release/comic-server ./comic-server
+COPY --from=client-builder /app/client/build ./client/build
+RUN chown -R comic:comic /app
+USER comic
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
-CMD ["bun", "run", "src/index.ts"]
+CMD ["./comic-server"]

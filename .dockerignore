@@ -1,8 +1,10 @@
+target
 node_modules
 client/node_modules
 client/build
 **/*.db
+**/*.db-journal
 *.md
-**/*.test.ts
 .git
 .env
+docs
