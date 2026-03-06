@@ -4,7 +4,7 @@ use axum::Json;
 use serde_json::json;
 
 use crate::error::AppError;
-use crate::models::BookshelfComic;
+use crate::models::{read_optional_timestamp, read_timestamp, BookshelfComic};
 
 use super::AppState;
 
@@ -57,8 +57,8 @@ pub async fn get_bookshelf(
                     file: row.get(2)?,
                     bookshelf: row.get(3)?,
                     brand: row.get(4)?,
-                    created_at: row.get(5)?,
-                    deleted_at: row.get(6)?,
+                    created_at: read_timestamp(row, 5)?,
+                    deleted_at: read_optional_timestamp(row, 6)?,
                 })
             })
             .unwrap()

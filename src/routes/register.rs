@@ -144,7 +144,24 @@ fn _register_all(comic_path: &PathBuf, db: &Db) -> RegisterResult {
 
         // Move file first, then insert into DB
         fs::create_dir_all(&unread_dir).ok();
-        if let Err(e) = fs::rename(haystack_dir.join(name), unread_dir.join(sanitized_name)) {
+        let dest = unread_dir.join(sanitized_name);
+        if dest.exists() {
+            // Destination already exists but not in DB — treat as duplicate to avoid data loss
+            fs::create_dir_all(&duplicates_dir).ok();
+            let dup_dest = duplicates_dir.join(name);
+            if dup_dest.exists() {
+                fs::remove_dir_all(&dup_dest).ok();
+            }
+            if let Err(e) = fs::rename(haystack_dir.join(name), &dup_dest) {
+                tracing::error!("[register] failed to move {name} to duplicates: {e}");
+                errors.push(name.clone());
+            } else {
+                tracing::warn!("[register] destination exists in unread/, moved to duplicates/: {name}");
+                duplicated.push(name.clone());
+            }
+            continue;
+        }
+        if let Err(e) = fs::rename(haystack_dir.join(name), &dest) {
             tracing::error!("[register] failed to move {name}: {e}");
             errors.push(name.clone());
             continue;
