@@ -2,10 +2,70 @@ use rusqlite::types::ValueRef;
 use rusqlite::Row;
 use serde::{Deserialize, Serialize};
 
+fn millis_to_iso8601(ms: i64) -> String {
+    let secs = ms / 1000;
+    let frac = (ms % 1000).unsigned_abs();
+
+    let day_secs = secs.rem_euclid(86400);
+    let mut days = (secs - day_secs) / 86400;
+    let h = day_secs / 3600;
+    let m = (day_secs % 3600) / 60;
+    let s = day_secs % 60;
+
+    let mut year: i64 = 1970;
+    loop {
+        let dy = if is_leap(year) { 366 } else { 365 };
+        if days < dy {
+            break;
+        }
+        days -= dy;
+        year += 1;
+    }
+
+    let leap = is_leap(year);
+    let mdays = [
+        31,
+        if leap { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
+    let mut month = 1u32;
+    for &md in &mdays {
+        if days < md {
+            break;
+        }
+        days -= md;
+        month += 1;
+    }
+    let day = days + 1;
+
+    format!("{year:04}-{month:02}-{day:02}T{h:02}:{m:02}:{s:02}.{frac:03}Z")
+}
+
+fn is_leap(y: i64) -> bool {
+    y % 4 == 0 && (y % 100 != 0 || y % 400 == 0)
+}
+
+fn int_to_iso8601(i: i64) -> String {
+    if i > 9_999_999_999 {
+        millis_to_iso8601(i)
+    } else {
+        millis_to_iso8601(i * 1000)
+    }
+}
+
 pub fn read_timestamp(row: &Row, idx: usize) -> rusqlite::Result<String> {
     match row.get_ref(idx)? {
         ValueRef::Text(bytes) => Ok(String::from_utf8_lossy(bytes).into_owned()),
-        ValueRef::Integer(i) => Ok(i.to_string()),
+        ValueRef::Integer(i) => Ok(int_to_iso8601(i)),
         other => Err(rusqlite::Error::InvalidColumnType(
             idx,
             "timestamp".into(),
@@ -18,7 +78,7 @@ pub fn read_optional_timestamp(row: &Row, idx: usize) -> rusqlite::Result<Option
     match row.get_ref(idx)? {
         ValueRef::Null => Ok(None),
         ValueRef::Text(bytes) => Ok(Some(String::from_utf8_lossy(bytes).into_owned())),
-        ValueRef::Integer(i) => Ok(Some(i.to_string())),
+        ValueRef::Integer(i) => Ok(Some(int_to_iso8601(i))),
         other => Err(rusqlite::Error::InvalidColumnType(
             idx,
             "timestamp".into(),
@@ -182,7 +242,7 @@ mod tests {
     }
 
     #[test]
-    fn from_row_with_integer_timestamps() {
+    fn from_row_with_integer_seconds_timestamps() {
         let conn = setup_db();
         conn.execute(
             "INSERT INTO comics (title, file, bookshelf, created_at, deleted_at)
@@ -199,8 +259,29 @@ mod tests {
             )
             .unwrap();
 
-        assert_eq!(comic.created_at, "1709700000");
-        assert_eq!(comic.deleted_at, Some("1717200000".to_string()));
+        assert_eq!(comic.created_at, "2024-03-06T04:40:00.000Z");
+        assert_eq!(comic.deleted_at, Some("2024-06-01T00:00:00.000Z".to_string()));
+    }
+
+    #[test]
+    fn from_row_with_integer_millis_timestamps() {
+        let conn = setup_db();
+        conn.execute(
+            "INSERT INTO comics (title, file, bookshelf, created_at)
+             VALUES ('test', 'test.zip', 'unread', 1772755348048)",
+            [],
+        )
+        .unwrap();
+
+        let comic = conn
+            .query_row(
+                "SELECT id, title, file, bookshelf, genre, brand, original, custom_path, created_at, deleted_at FROM comics WHERE id = 1",
+                [],
+                Comic::from_row,
+            )
+            .unwrap();
+
+        assert_eq!(comic.created_at, "2026-03-06T00:02:28.048Z");
     }
 
     #[test]
@@ -244,7 +325,7 @@ mod tests {
         assert_eq!(comic.brand, None);
         assert_eq!(comic.original, None);
         assert_eq!(comic.custom_path, None);
-        assert_eq!(comic.created_at, "1709700000");
+        assert_eq!(comic.created_at, "2024-03-06T04:40:00.000Z");
         assert_eq!(comic.deleted_at, None);
     }
 }

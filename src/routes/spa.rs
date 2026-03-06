@@ -68,6 +68,24 @@ pub fn get_index_html(base_path: &str) -> Option<String> {
     Some(html)
 }
 
+pub async fn spa_fallback_with_base(base_path: &str) -> Result<Response, AppError> {
+    let html = get_index_html(base_path);
+    match html {
+        Some(html) => Ok(Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(Body::from(html))
+            .unwrap()),
+        None => Ok(Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(Body::from(
+                r#"{"error":"Frontend not built. Run: npm run build"}"#,
+            ))
+            .unwrap()),
+    }
+}
+
 pub async fn spa_fallback(
     axum::extract::State(state): axum::extract::State<super::AppState>,
 ) -> Result<Response, AppError> {
@@ -86,6 +104,23 @@ pub async fn spa_fallback(
             ))
             .unwrap()),
     }
+}
+
+pub async fn serve_favicon() -> Result<Response, AppError> {
+    let path = std::env::current_dir()
+        .unwrap_or_default()
+        .join("client/build/favicon.ico");
+
+    let contents = tokio::fs::read(&path)
+        .await
+        .map_err(|_| AppError::NotFound("Not found".to_string()))?;
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "image/x-icon")
+        .header(header::CACHE_CONTROL, "public, max-age=86400")
+        .body(Body::from(contents))
+        .unwrap())
 }
 
 pub async fn serve_assets(

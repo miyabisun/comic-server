@@ -40,6 +40,8 @@ pub fn build_router(state: AppState) -> Router {
         )
         .route("/images/{*path}", get(images::serve_image))
         .route("/assets/{*path}", get(spa::serve_assets))
+        .route("/favicon.ico", get(spa::serve_favicon))
+        .route("/", get(spa::spa_fallback))
         .fallback(spa::spa_fallback)
         .with_state(state.clone());
 
@@ -47,6 +49,15 @@ pub fn build_router(state: AppState) -> Router {
     if base_path.is_empty() {
         api
     } else {
-        Router::new().nest(base_path, api)
+        let bp = state.base_path.clone();
+        let trailing = format!("{base_path}/");
+        Router::new()
+            .nest(base_path, api)
+            .route(
+                &trailing,
+                get(move || async move {
+                    spa::spa_fallback_with_base(&bp).await
+                }),
+            )
     }
 }
