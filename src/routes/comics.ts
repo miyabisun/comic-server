@@ -71,8 +71,7 @@ app.get('/api/comics/:id', (c) => {
   }
 
   const customPath = toCustomPath(comic)
-  const comicFile = comic.file.replaceAll('/', '\\/')
-  const comicDir = `${comicPath}/${comic.bookshelf}/${comicFile}`
+  const comicDir = `${comicPath}/${comic.bookshelf}/${comic.file}`
 
   if (!fs.existsSync(comicDir)) {
     return c.json({ error: 'Not found' }, 404)
@@ -126,7 +125,7 @@ app.put('/api/comics/:id', async (c) => {
 
   // duplicate name check
   const body = await c.req.json()
-  const comicFile = (body.file || comic.file).replaceAll('/', '\\/')
+  const comicFile = sanitizeFilename(body.file || comic.file)
   if (comicFile !== comic.file) {
     const row = db.select().from(comics).where(eq(comics.file, comicFile)).get()
     // Check if the found row is not the current comic being updated
@@ -182,8 +181,7 @@ app.delete('/api/comics/:id', (c) => {
   }
 
   // image file check
-  const comicFile = comic.file.replaceAll('/', '\\/')
-  if (!fs.existsSync(`${comicPath}/${comic.bookshelf}/${comicFile}`)) {
+  if (!fs.existsSync(`${comicPath}/${comic.bookshelf}/${comic.file}`)) {
     return c.json({ error: 'Not found' }, 404)
   }
 
@@ -199,7 +197,7 @@ app.delete('/api/comics/:id', (c) => {
         fs.mkdirSync(deletedDir)
       }
 
-      fs.renameSync(`${comicPath}/${comic.bookshelf}/${comicFile}`, `${deletedDir}/${comicFile}`)
+      fs.renameSync(`${comicPath}/${comic.bookshelf}/${comic.file}`, `${deletedDir}/${comic.file}`)
     })
 
     return c.json({

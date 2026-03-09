@@ -5,6 +5,7 @@ import normalizeBrackets from './normalize-brackets.js'
 // Also normalizes bracket structures
 export default function sanitizeFilename(filename: string): string {
   const replaced = filename
+    .replace(/\\/g, '＼')     // Full-width backslash (must be first to avoid escaping other replacements)
     .replace(/#/g, '＃')      // Full-width sharp (避免 URL fragment)
     .replace(/\?/g, '？')     // Full-width question mark
     .replace(/</g, '＜')      // Full-width less than
@@ -13,7 +14,7 @@ export default function sanitizeFilename(filename: string): string {
     .replace(/"/g, '\u201D')  // Full-width double quote
     .replace(/\|/g, '｜')     // Full-width pipe
     .replace(/\*/g, '＊')     // Full-width asterisk
-    .replace(/\\/g, '＼')     // Full-width backslash
+    .replace(/%/g, '％')      // Full-width percent (avoid URL encoding conflicts)
 
   return normalizeBrackets(replaced)
 }
