@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
+import readdir from 'fs-readdir-recursive'
 import { Hono } from 'hono'
-import { eq, inArray } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { db } from '../db/index.js'
 import { comics } from '../db/schema.js'
 import { comicPath } from '../lib/config.js'
@@ -12,15 +13,29 @@ const app = new Hono()
 
 const duplicatesDir = path.join(comicPath, 'duplicates')
 
-// Find the existing comic that matches a sanitized name.
-// First try exact match, then try matching sanitized DB values.
-function findExisting(sanitizedName: string, allComics: { id: number; bookshelf: string; file: string }[]) {
-  // Exact match (DB file === sanitized duplicate name)
-  const exact = allComics.find((c) => c.file === sanitizedName)
+// Strip all characters that sanitize would replace, for loose matching.
+// This handles cases where DB has corrupted data (e.g. \! instead of !)
+function normalize(name: string): string {
+  return name.replace(/[\\#?<>:"|*%＃？＜＞：\u201D｜＊＼％]/g, '')
+}
+
+function countImages(dir: string): number {
+  if (!fs.existsSync(dir)) return 0
+  return readdir(dir).filter((f: string) => /\.(png|jpe?g)$/i.test(f)).length
+}
+
+// Find the existing comic that matches a duplicate name.
+function findExisting(dupName: string) {
+  const sanitizedName = sanitize(dupName)
+  const normalizedName = normalize(sanitizedName)
+
+  // 1. Exact match on sanitized name
+  const exact = db.select().from(comics).where(eq(comics.file, sanitizedName)).get()
   if (exact) return exact
 
-  // Fuzzy match (sanitize(DB file) === sanitized duplicate name)
-  return allComics.find((c) => sanitize(c.file) === sanitizedName)
+  // 2. Loose match: normalize both sides and compare
+  const all = db.select().from(comics).all()
+  return all.find((c) => normalize(c.file) === normalizedName) ?? null
 }
 
 app.get('/api/duplicates', (c) => {
@@ -34,46 +49,11 @@ app.get('/api/duplicates', (c) => {
 
   if (entries.length === 0) return c.json([])
 
-  // Collect all sanitized names for lookup
-  const sanitizedNames = entries.map((name) => sanitize(name))
-
-  // Also collect raw DB files that might need sanitize() to match
-  // We need broader lookup, so fetch by both sanitized names and do a fuzzy pass
-  const exactMatches = db.select({
-    id: comics.id,
-    bookshelf: comics.bookshelf,
-    file: comics.file,
-  }).from(comics).where(inArray(comics.file, sanitizedNames)).all()
-
-  // For entries that didn't get an exact match, we need to check if
-  // sanitize(db.file) matches. This requires scanning all comics with
-  // problematic characters, but since fix-filenames should have cleaned
-  // most of these, we do a targeted search.
-  const unmatchedNames = sanitizedNames.filter(
-    (sn) => !exactMatches.some((c) => c.file === sn),
-  )
-
-  let allCandidates = [...exactMatches]
-  if (unmatchedNames.length > 0) {
-    // Fetch comics whose file contains backslash or other raw chars
-    const extras = db.select({
-      id: comics.id,
-      bookshelf: comics.bookshelf,
-      file: comics.file,
-    }).from(comics).all().filter(
-      (c) => unmatchedNames.includes(sanitize(c.file)),
-    )
-    allCandidates = [...allCandidates, ...extras]
-  }
-
   const results = entries.map((name) => {
-    const sanitizedName = sanitize(name)
-    const existing = findExisting(sanitizedName, allCandidates)
+    const existing = findExisting(name)
     return {
       name,
-      sanitizedName,
       existingId: existing?.id ?? null,
-      existingFile: existing?.file ?? null,
       existingBookshelf: existing?.bookshelf ?? null,
     }
   })
@@ -84,50 +64,40 @@ app.get('/api/duplicates', (c) => {
 // Compare a duplicate with its existing DB record
 app.get('/api/duplicates/:name/compare', (c) => {
   const name = decodeURIComponent(c.req.param('name'))
-  const targetDir = path.resolve(duplicatesDir, name)
+  const dupDir = path.resolve(duplicatesDir, name)
 
-  if (!targetDir.startsWith(path.resolve(duplicatesDir) + path.sep)) {
+  if (!dupDir.startsWith(path.resolve(duplicatesDir) + path.sep)) {
     return c.json({ error: 'Forbidden' }, 403)
   }
-  if (!fs.existsSync(targetDir)) {
+  if (!fs.existsSync(dupDir)) {
     return c.json({ error: 'Not found' }, 404)
   }
 
-  const sanitizedName = sanitize(name)
-  const dupParsed = parseComicName(name)
+  const existing = findExisting(name)
+  const dupImageCount = countImages(dupDir)
 
-  // Find existing
-  const allComics = db.select({
-    id: comics.id,
-    bookshelf: comics.bookshelf,
-    file: comics.file,
-    title: comics.title,
-    genre: comics.genre,
-    brand: comics.brand,
-    original: comics.original,
-  }).from(comics).all()
-
-  const existing = findExisting(sanitizedName, allComics)
+  let existingData = null
+  if (existing) {
+    const existingDir = path.join(comicPath, existing.bookshelf, existing.file)
+    existingData = {
+      id: existing.id,
+      file: existing.file,
+      bookshelf: existing.bookshelf,
+      imageCount: countImages(existingDir),
+      dirExists: fs.existsSync(existingDir),
+    }
+  }
 
   return c.json({
     duplicate: {
       name,
-      sanitizedName,
-      parsed: dupParsed,
+      imageCount: dupImageCount,
     },
-    existing: existing ? {
-      id: existing.id,
-      file: existing.file,
-      bookshelf: existing.bookshelf,
-      title: (allComics.find((c) => c.id === existing.id) as any)?.title,
-      genre: (allComics.find((c) => c.id === existing.id) as any)?.genre,
-      brand: (allComics.find((c) => c.id === existing.id) as any)?.brand,
-      original: (allComics.find((c) => c.id === existing.id) as any)?.original,
-    } : null,
+    existing: existingData,
   })
 })
 
-// Replace existing with the duplicate
+// Replace existing with the duplicate (keep duplicate)
 app.post('/api/duplicates/:name/replace', (c) => {
   const name = decodeURIComponent(c.req.param('name'))
   const srcDir = path.resolve(duplicatesDir, name)
@@ -140,26 +110,22 @@ app.post('/api/duplicates/:name/replace', (c) => {
   }
 
   const sanitizedName = sanitize(name)
-
-  // Find the existing comic
-  const allComics = db.select({
-    id: comics.id,
-    bookshelf: comics.bookshelf,
-    file: comics.file,
-  }).from(comics).all()
-
-  const existing = findExisting(sanitizedName, allComics)
+  const existing = findExisting(name)
   if (!existing) {
     return c.json({ error: 'Existing comic not found in DB' }, 404)
   }
 
-  const oldDir = path.join(comicPath, existing.bookshelf, existing.file)
   const newDir = path.join(comicPath, existing.bookshelf, sanitizedName)
   const parsed = parseComicName(name)
 
+  // Collect all possible old directory paths (DB file as-is and sanitized)
+  const oldDirCandidates = [
+    path.join(comicPath, existing.bookshelf, existing.file),
+    path.join(comicPath, existing.bookshelf, sanitizedName),
+  ]
+
   try {
     db.transaction((tx) => {
-      // Update DB record with sanitized name and re-parsed metadata
       tx.update(comics).set({
         file: sanitizedName,
         title: parsed.title || sanitizedName,
@@ -168,12 +134,13 @@ app.post('/api/duplicates/:name/replace', (c) => {
         original: parsed.original || null,
       }).where(eq(comics.id, existing.id)).run()
 
-      // Remove old directory if it exists
-      if (fs.existsSync(oldDir)) {
-        fs.rmSync(oldDir, { recursive: true, force: true })
+      // Remove old directories (both raw and sanitized paths)
+      for (const dir of oldDirCandidates) {
+        if (fs.existsSync(dir)) {
+          fs.rmSync(dir, { recursive: true, force: true })
+        }
       }
 
-      // Move duplicate to the existing bookshelf
       fs.renameSync(srcDir, newDir)
     })
 
@@ -187,6 +154,7 @@ app.post('/api/duplicates/:name/replace', (c) => {
   }
 })
 
+// Keep existing, delete the duplicate
 app.delete('/api/duplicates/:name', (c) => {
   const { name } = c.req.param()
 

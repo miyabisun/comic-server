@@ -38,20 +38,20 @@
 		}
 	}
 
-	async function deleteDuplicate(name) {
-		await fetcher(`${config.path.api}/duplicates/${encodeURIComponent(name)}`, { method: 'DELETE' });
-		addToast('Deleted');
-		comparing = null;
-		loadDuplicates();
-	}
-
 	async function compareDuplicate(name) {
 		comparing = await fetcher(`${config.path.api}/duplicates/${encodeURIComponent(name)}/compare`);
 	}
 
-	async function replaceDuplicate(name) {
+	async function keepExisting(name) {
+		await fetcher(`${config.path.api}/duplicates/${encodeURIComponent(name)}`, { method: 'DELETE' });
+		addToast('Kept existing, duplicate deleted');
+		comparing = null;
+		loadDuplicates();
+	}
+
+	async function keepDuplicate(name) {
 		await fetcher(`${config.path.api}/duplicates/${encodeURIComponent(name)}/replace`, { method: 'POST' });
-		addToast('Replaced');
+		addToast('Replaced with duplicate');
 		comparing = null;
 		loadDuplicates();
 	}
@@ -78,7 +78,6 @@
 								<span class="shelf">({dup.existingBookshelf})</span>
 							{/if}
 							<button onclick={() => compareDuplicate(dup.name)}>compare</button>
-							<button onclick={() => deleteDuplicate(dup.name)}>delete</button>
 						</li>
 					{/each}
 				</ul>
@@ -86,44 +85,42 @@
 
 			{#if comparing}
 				<div class="compare-panel">
-					<h3>Compare</h3>
+					<div class="compare-header">
+						<h3>Compare</h3>
+						<button class="close" onclick={() => comparing = null}>x</button>
+					</div>
 					<div class="compare-grid">
 						<div class="col">
-							<h4>Existing (DB)</h4>
+							<h4>Existing</h4>
 							{#if comparing.existing}
 								<dl>
-									<dt>id</dt><dd>{comparing.existing.id}</dd>
 									<dt>file</dt><dd class="mono">{comparing.existing.file}</dd>
 									<dt>bookshelf</dt><dd>{comparing.existing.bookshelf}</dd>
-									<dt>title</dt><dd>{comparing.existing.title}</dd>
-									<dt>brand</dt><dd>{comparing.existing.brand || '-'}</dd>
-									<dt>genre</dt><dd>{comparing.existing.genre || '-'}</dd>
-									<dt>original</dt><dd>{comparing.existing.original || '-'}</dd>
+									<dt>images</dt><dd>{comparing.existing.imageCount}</dd>
+									<dt>dir exists</dt><dd class={comparing.existing.dirExists ? '' : 'warn'}>{comparing.existing.dirExists ? 'yes' : 'no'}</dd>
 								</dl>
+								{#if comparing.existing.dirExists}
+									<a class="view-link" href="{link('/comics/' + comparing.existing.id)}">View comic</a>
+								{/if}
 							{:else}
 								<p class="warn">No matching record in DB</p>
 							{/if}
 						</div>
 						<div class="col">
-							<h4>Duplicate (new)</h4>
+							<h4>Duplicate</h4>
 							<dl>
-								<dt>file (raw)</dt><dd class="mono">{comparing.duplicate.name}</dd>
-								<dt>file (sanitized)</dt><dd class="mono">{comparing.duplicate.sanitizedName}</dd>
-								<dt>title</dt><dd>{comparing.duplicate.parsed.title}</dd>
-								<dt>brand</dt><dd>{comparing.duplicate.parsed.brand || '-'}</dd>
-								<dt>genre</dt><dd>{comparing.duplicate.parsed.genre || '-'}</dd>
-								<dt>original</dt><dd>{comparing.duplicate.parsed.original || '-'}</dd>
+								<dt>file</dt><dd class="mono">{comparing.duplicate.name}</dd>
+								<dt>images</dt><dd>{comparing.duplicate.imageCount}</dd>
 							</dl>
 						</div>
 					</div>
 					<div class="compare-actions">
 						{#if comparing.existing}
-							<button class="primary" onclick={() => replaceDuplicate(comparing.duplicate.name)}>
-								Replace existing with duplicate
-							</button>
+							<button onclick={() => keepExisting(comparing.duplicate.name)}>Keep existing</button>
+							<button class="primary" onclick={() => keepDuplicate(comparing.duplicate.name)}>Keep duplicate</button>
+						{:else}
+							<button onclick={() => keepDuplicate(comparing.duplicate.name)}>Register as new</button>
 						{/if}
-						<button onclick={() => deleteDuplicate(comparing.duplicate.name)}>Delete duplicate</button>
-						<button onclick={() => comparing = null}>Cancel</button>
 					</div>
 				</div>
 			{/if}
@@ -211,18 +208,35 @@
 			background: rgba(255, 255, 255, 0.06)
 			border: 1px solid rgba(255, 255, 255, 0.15)
 
-			h3
-				margin: 0 0 8px
+			.compare-header
+				display: flex
+				justify-content: space-between
+				align-items: center
+				margin-bottom: 8px
 
-			h4
-				margin: 0 0 6px
-				font-size: 0.9em
-				opacity: 0.7
+				h3
+					margin: 0
+
+				.close
+					padding: 0 6px
+					border: none
+					background: transparent
+					color: rgba(255, 255, 255, 0.5)
+					cursor: pointer
+					font-size: 1.2em
+
+					&:hover
+						color: rgba(255, 255, 255, 0.9)
 
 		.compare-grid
 			display: grid
 			grid-template-columns: 1fr 1fr
 			gap: 16px
+
+			h4
+				margin: 0 0 6px
+				font-size: 0.9em
+				opacity: 0.7
 
 			dl
 				margin: 0
@@ -243,6 +257,10 @@
 
 			.warn
 				color: #f90
+
+			.view-link
+				display: inline-block
+				margin-top: 6px
 				font-size: 0.85em
 
 		.compare-actions
