@@ -65,6 +65,18 @@ function _registerAll() {
 
       const parsed = parseComicName(name)
 
+      // Destination already exists in unread/ → move to duplicates
+      const dest = `${unreadDir}/${sanitizedName}`
+      if (fs.existsSync(dest)) {
+        if (!fs.existsSync(duplicatesDir)) fs.mkdirSync(duplicatesDir)
+        const dupDest = `${duplicatesDir}/${name}`
+        if (fs.existsSync(dupDest)) fs.rmSync(dupDest, { recursive: true, force: true })
+        fs.renameSync(`${haystackDir}/${name}`, dupDest)
+        console.warn(`[register] destination exists in unread/, moved to duplicates/: ${name}`)
+        duplicated.push(name)
+        continue
+      }
+
       db.transaction((tx) => {
         tx.insert(comics).values({
           title: parsed.title || name,
@@ -76,7 +88,7 @@ function _registerAll() {
         }).run()
 
         if (!fs.existsSync(unreadDir)) fs.mkdirSync(unreadDir)
-        fs.renameSync(`${haystackDir}/${name}`, `${unreadDir}/${sanitizedName}`)
+        fs.renameSync(`${haystackDir}/${name}`, dest)
       })
 
       console.log(`[register] registered: ${name} -> unread/${sanitizedName}`)
