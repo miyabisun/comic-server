@@ -83,17 +83,23 @@ Each part is parsed automatically into database fields:
 | title | `My Comic Title` | `title` |
 | `(original)` | `(Original Work)` | `original` |
 
-### 3. Wait for auto-registration
+### 3. Register via API
 
-The server scans `haystack/` every 60 seconds. Each folder is:
+After placing a folder in `haystack/`, call the registration API with the folder name:
+
+```bash
+curl -X POST http://localhost:3000/api/regist \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "(同人誌) [Circle Name] My Comic Title (Original Work)"}'
+```
+
+The folder is:
 
 1. Parsed to extract metadata from the folder name
 2. Registered in the database as `unread`
 3. Moved from `haystack/` to `unread/`
 
 If a comic with the same name already exists, the folder is moved to `duplicates/` instead.
-
-You can also trigger registration immediately via `POST /api/register`.
 
 ### 4. Browse and rate
 

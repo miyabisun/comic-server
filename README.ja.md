@@ -84,17 +84,23 @@ haystack/
 | タイトル | `作品タイトル` | `title` |
 | `(原作)` | `(原作名)` | `original` |
 
-### 3. 自動登録を待つ
+### 3. API で登録する
 
-サーバーは 60 秒ごとに `haystack/` をスキャンします。各フォルダは:
+`haystack/` にフォルダを配置したら、登録 API にフォルダ名を指定して呼び出します:
+
+```bash
+curl -X POST http://localhost:3000/api/regist \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "(同人誌) [サークル名] 作品タイトル (原作名)"}'
+```
+
+各フォルダは:
 
 1. フォルダ名からメタデータを抽出
 2. `unread` (未読) としてデータベースに登録
 3. `haystack/` から `unread/` に移動
 
 同名のコミックがすでに登録済みの場合は `duplicates/` に移動されます。
-
-`POST /api/register` で即座に登録を実行することもできます。
 
 ### 4. 閲覧して評価する
 

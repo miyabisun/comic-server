@@ -128,22 +128,35 @@ Search comics by brand name. Splits the name by delimiters (`()、`) and searche
 
 **Response**: `Comic[]`
 
-## Register
+## Regist
 
-### `POST /api/register`
+### `POST /api/regist`
 
-Scan the `haystack/` directory and register all comic directories found. For each directory, parses metadata from the name, sanitizes the filename, and moves it to `unread/`. Duplicates are moved to `duplicates/`.
+Register a single comic directory from `haystack/`. Parses metadata from the folder name, sanitizes the filename, and moves it to `unread/`. Duplicates are moved to `duplicates/`.
 
-**Request body**: None
-
-**Response**:
+**Request body**:
 ```json
 {
-  "registered": ["dir1", "dir2"],
-  "duplicated": ["dir3"],
-  "errors": ["dir4"]
+  "name": "string (required, directory name in haystack/)"
 }
 ```
+
+**Response (registered)**:
+```json
+{ "status": "registered", "name": "..." }
+```
+
+**Response (duplicate)**:
+```json
+{ "status": "duplicated", "name": "..." }
+```
+
+**Error responses**:
+
+| Status | Body |
+|--------|------|
+| 400 | `{ "error": "name is required" }` |
+| 404 | `{ "error": "not found in haystack" }` |
 
 ## Images
 

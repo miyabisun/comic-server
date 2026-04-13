@@ -20,7 +20,7 @@ comic-server/
 │   │   ├── bookshelves.ts  # GET /api/bookshelves/:name
 │   │   ├── brands.ts       # GET /api/brands/:name
 │   │   ├── duplicates.ts   # GET /api/duplicates
-│   │   └── register.ts     # POST /api/register
+│   │   └── regist.ts        # POST /api/regist
 │   ├── db/                 # Database layer
 │   │   ├── index.ts        # Drizzle + bun:sqlite connection
 │   │   └── schema.ts       # Drizzle schema definition

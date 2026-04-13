@@ -8,7 +8,7 @@ import { getMimeType } from 'hono/utils/mime'
 import comics from './routes/comics.js'
 import bookshelves from './routes/bookshelves.js'
 import brands from './routes/brands.js'
-import register, { registerAll } from './routes/register.js'
+import regist from './routes/regist.js'
 import duplicates from './routes/duplicates.js'
 import { comicPath } from './lib/config.js'
 import { init } from './lib/init.js'
@@ -35,7 +35,7 @@ const sub = new Hono()
 sub.route('/', comics)
 sub.route('/', bookshelves)
 sub.route('/', brands)
-sub.route('/', register)
+sub.route('/', regist)
 sub.route('/', duplicates)
 
 // Image serving: /images/:bookshelf/:file/:path
@@ -82,14 +82,5 @@ if (basePath) {
 }
 
 console.log(`Server running on http://localhost:${port}${basePath || '/'}`)
-
-// Auto-register from haystack/ every 60 seconds
-setInterval(() => {
-  try {
-    registerAll()
-  } catch (e) {
-    console.error('[polling] register failed:', e)
-  }
-}, 60_000)
 
 export default { port, fetch: app.fetch }

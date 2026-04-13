@@ -18,26 +18,6 @@
 		duplicates = await fetcher(`${config.path.api}/duplicates`);
 	}
 
-	let registering = $state(false);
-
-	async function runRegister() {
-		registering = true;
-		try {
-			const result = await fetcher(`${config.path.api}/register`, { method: 'POST' });
-			const msgs = [];
-			if (result.registered.length) msgs.push(`${result.registered.length} registered`);
-			if (result.duplicated.length) msgs.push(`${result.duplicated.length} duplicated`);
-			if (result.errors.length) msgs.push(`${result.errors.length} errors`);
-			addToast(msgs.length ? msgs.join(', ') : 'No new comics');
-			loadBookshelves();
-			loadDuplicates();
-		} catch {
-			addToast('Register failed');
-		} finally {
-			registering = false;
-		}
-	}
-
 	async function compareDuplicate(name) {
 		comparing = await fetcher(`${config.path.api}/duplicates/${encodeURIComponent(name)}/compare`);
 	}
@@ -126,12 +106,6 @@
 			{/if}
 		</section>
 	{/if}
-
-	<section class="actions">
-		<button onclick={runRegister} disabled={registering}>
-			{registering ? 'Registering...' : 'Register Now'}
-		</button>
-	</section>
 
 	<section class="shelves">
 		<h2>Bookshelves</h2>
@@ -286,24 +260,6 @@
 
 					&:hover
 						background: rgba(60, 130, 240, 0.5)
-
-	.actions
-		margin: 12px 0
-
-		button
-			padding: 6px 16px
-			border: 1px solid rgba(255, 255, 255, 0.3)
-			border-radius: 4px
-			background: transparent
-			color: rgba(255, 255, 255, 0.85)
-			cursor: pointer
-
-			&:hover:not(:disabled)
-				background: rgba(255, 255, 255, 0.1)
-
-			&:disabled
-				opacity: 0.5
-				cursor: default
 
 	.shelf-list
 		li
