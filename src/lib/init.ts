@@ -4,6 +4,7 @@ import { comicPath } from './config.js'
 import { db } from '../db/index.js'
 
 const BOOKSHELF_DIRS = ['haystack', 'unread', 'hold', 'like', 'favorite', 'love', 'legend', 'deleted']
+const SYSTEM_DIRS = ['backup']
 
 function toISO(value: string): string | null {
   // Pure integer timestamp
@@ -38,7 +39,7 @@ function migrateTimestamps(column: 'created_at' | 'deleted_at') {
 
 export function init() {
   // Create COMIC_PATH and bookshelf directories
-  for (const dir of BOOKSHELF_DIRS) {
+  for (const dir of [...BOOKSHELF_DIRS, ...SYSTEM_DIRS]) {
     fs.mkdirSync(`${comicPath}/${dir}`, { recursive: true })
   }
 

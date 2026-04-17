@@ -2,7 +2,7 @@
 	import { link } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
-	import { updateComic } from '$lib/api.js';
+	import { updateComic, startUpscale, confirmUpscale, rollbackUpscale, getUpscaleStatus } from '$lib/api.js';
 	import { addToast } from '$lib/toast.svelte.js';
 	import { levelGe } from '$lib/levels.js';
 	import { createHoldRepeat } from '$lib/hold-repeat.svelte.js';
@@ -160,6 +160,60 @@
 			imgPointer = idx + 1;
 		}
 	}
+
+	let upscaleStatus = $state({ status: 'idle' });
+
+	async function refreshUpscaleStatus() {
+		if (!comic) return;
+		try {
+			upscaleStatus = await getUpscaleStatus(comic.id);
+		} catch (e) {
+			console.error(e);
+		}
+	}
+
+	// Poll upscale status while the modal is open.
+	// Depends only on showInfo and comic?.id so the timer stays stable across
+	// comic object reassignments (e.g. load(id) refetching after a mutation).
+	$effect(() => {
+		const cid = comic?.id;
+		if (!showInfo || !cid) return;
+		refreshUpscaleStatus();
+		const timer = setInterval(refreshUpscaleStatus, 5000);
+		return () => clearInterval(timer);
+	});
+
+	async function handleStartUpscale() {
+		try {
+			await startUpscale(comic.id);
+			addToast('Upscale started');
+			await refreshUpscaleStatus();
+		} catch (e) {
+			addToast(`Failed: ${e.message}`);
+		}
+	}
+
+	async function handleConfirmUpscale() {
+		try {
+			await confirmUpscale(comic.id);
+			addToast('Confirmed');
+			await refreshUpscaleStatus();
+			load(id);
+		} catch (e) {
+			addToast(`Failed: ${e.message}`);
+		}
+	}
+
+	async function handleRollbackUpscale() {
+		try {
+			await rollbackUpscale(comic.id);
+			addToast('Rolled back');
+			await refreshUpscaleStatus();
+			load(id);
+		} catch (e) {
+			addToast(`Failed: ${e.message}`);
+		}
+	}
 </script>
 
 <svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
@@ -200,6 +254,25 @@
 					<div class="modal-header">
 						<h3>{comic.file}</h3>
 						<button class="modal-close" onclick={() => { tmpComic = {}; showInfo = false; }}>✕</button>
+					</div>
+					<div class="upscale-section">
+						{#if upscaleStatus.status === 'idle'}
+							<button type="button" class="upscale-btn start" onclick={handleStartUpscale}>アップスケール申請</button>
+						{:else if upscaleStatus.status === 'processing'}
+							<div class="upscale-progress">
+								<span class="label">処理中</span>
+								<span class="count">{upscaleStatus.processed ?? 0} / {upscaleStatus.total ?? '?'}</span>
+								{#if upscaleStatus.currentFile}
+									<span class="file">{upscaleStatus.currentFile}</span>
+								{/if}
+							</div>
+						{:else if upscaleStatus.status === 'pending'}
+							<div class="upscale-pending">
+								<span class="label">確認待ち</span>
+								<button type="button" class="upscale-btn confirm" onclick={handleConfirmUpscale}>確定</button>
+								<button type="button" class="upscale-btn rollback" onclick={handleRollbackUpscale}>ロールバック</button>
+							</div>
+						{/if}
 					</div>
 					<div class="modal-body">
 						<div class="modal-form">
@@ -399,6 +472,74 @@ $height: calc(100vh - 22px)
 
 			&:hover
 				color: rgba(255, 255, 255, 0.9)
+
+		.upscale-section
+			margin: 8px 0 12px
+			padding: 8px 12px
+			background: rgba(255, 255, 255, 0.04)
+			border: 1px solid rgba(255, 255, 255, 0.1)
+			border-radius: 4px
+
+			.upscale-btn
+				font-size: 0.8rem
+				padding: 4px 12px
+				border: 1px solid rgba(255, 255, 255, 0.2)
+				border-radius: 4px
+				cursor: pointer
+				background: rgba(255, 255, 255, 0.08)
+				color: rgba(255, 255, 255, 0.85)
+
+				&:hover
+					background: rgba(255, 255, 255, 0.15)
+
+				&.start
+					background: rgba(128, 192, 255, 0.2)
+					border-color: rgba(128, 192, 255, 0.4)
+					color: rgba(128, 192, 255, 0.9)
+
+					&:hover
+						background: rgba(128, 192, 255, 0.3)
+
+				&.confirm
+					background: rgba(128, 255, 128, 0.15)
+					border-color: rgba(128, 255, 128, 0.3)
+					color: rgba(192, 255, 192, 0.9)
+
+					&:hover
+						background: rgba(128, 255, 128, 0.25)
+
+				&.rollback
+					background: rgba(255, 128, 128, 0.15)
+					border-color: rgba(255, 128, 128, 0.3)
+					color: rgba(255, 192, 192, 0.9)
+
+					&:hover
+						background: rgba(255, 128, 128, 0.25)
+
+			.upscale-progress,
+			.upscale-pending
+				display: flex
+				flex-wrap: wrap
+				align-items: center
+				gap: 8px
+				font-size: 0.8rem
+
+				.label
+					font-weight: bold
+					color: rgba(255, 255, 255, 0.6)
+
+				.count
+					font-family: monospace
+					color: rgba(128, 192, 255, 0.9)
+
+				.file
+					font-family: monospace
+					color: rgba(255, 255, 255, 0.5)
+					font-size: 0.75rem
+					overflow: hidden
+					text-overflow: ellipsis
+					white-space: nowrap
+					max-width: 100%
 
 		.modal-body
 			@media (min-width: 1200px)

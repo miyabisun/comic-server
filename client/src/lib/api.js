@@ -18,3 +18,24 @@ export async function deleteComic(id) {
 	if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
 	return r.json();
 }
+
+async function upscalePost(id, action = '') {
+	const suffix = action ? `/${action}` : '';
+	const r = await fetch(`${config.path.api}/comics/${id}/upscale${suffix}`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' }
+	});
+	const data = await r.json().catch(() => ({}));
+	if (!r.ok) throw new Error(data.error || `${r.status} ${r.statusText}`);
+	return data;
+}
+
+export const startUpscale = (id) => upscalePost(id);
+export const confirmUpscale = (id) => upscalePost(id, 'confirm');
+export const rollbackUpscale = (id) => upscalePost(id, 'rollback');
+
+export async function getUpscaleStatus(id) {
+	const r = await fetch(`${config.path.api}/comics/${id}/upscale/status`);
+	if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+	return r.json();
+}

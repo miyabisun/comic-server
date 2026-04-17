@@ -10,6 +10,7 @@ import bookshelves from './routes/bookshelves.js'
 import brands from './routes/brands.js'
 import regist from './routes/regist.js'
 import duplicates from './routes/duplicates.js'
+import upscale from './routes/upscale.js'
 import { comicPath } from './lib/config.js'
 import { init } from './lib/init.js'
 import { getIndexHtml } from './lib/spa.js'
@@ -37,6 +38,7 @@ sub.route('/', bookshelves)
 sub.route('/', brands)
 sub.route('/', regist)
 sub.route('/', duplicates)
+sub.route('/', upscale)
 
 // Image serving: /images/:bookshelf/:file/:path
 sub.get('/images/*', async (c) => {
