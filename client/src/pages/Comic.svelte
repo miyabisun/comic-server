@@ -147,8 +147,20 @@
 		return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	}
 
+	let imagesSet = $derived(new Set(comic?.images || []));
+
 	function setCustomPathDir(dir) {
 		setField('custom_path', `^${escapeRegExp(dir)}\\/`);
+	}
+
+	function jumpToImage(filename) {
+		if (!comic?.images) return;
+		const idx = comic.images.indexOf(filename);
+		if (idx !== -1) {
+			imgPointer = idx + 1;
+			tmpComic = {};
+			showInfo = false;
+		}
 	}
 </script>
 
@@ -241,7 +253,8 @@
 							<ol class="file-preview">
 								{#each comic['origin-images'] || [] as img, i}
 									{@const excluded = customPathRegex ? !customPathRegex.test(img) : false}
-									<li class:excluded><span>{img}</span></li>
+									{@const clickable = !excluded && imagesSet.has(img)}
+									<li class:excluded class:clickable onclick={() => clickable && jumpToImage(img)}><span>{img}</span></li>
 								{/each}
 							</ol>
 						</div>
@@ -351,7 +364,9 @@ $height: calc(100vh - 22px)
 		z-index: 100
 
 	.modal
-		background: #fff
+		background: rgba(30, 30, 30, 0.92)
+		color: rgba(255, 255, 255, 0.85)
+		border: 1px solid rgba(255, 255, 255, 0.1)
 		border-radius: 8px
 		padding: 16px 24px
 		max-width: 640px
@@ -374,6 +389,7 @@ $height: calc(100vh - 22px)
 				overflow: hidden
 				text-overflow: ellipsis
 				white-space: nowrap
+				color: rgba(255, 255, 255, 0.85)
 
 		.modal-close
 			border: none
@@ -381,6 +397,10 @@ $height: calc(100vh - 22px)
 			font-size: 1.2rem
 			cursor: pointer
 			padding: 0 4px
+			color: rgba(255, 255, 255, 0.6)
+
+			&:hover
+				color: rgba(255, 255, 255, 0.9)
 
 		.modal-body
 			@media (min-width: 1200px)
@@ -395,6 +415,17 @@ $height: calc(100vh - 22px)
 				.buttons
 					margin-bottom: 8px
 
+					button
+						background: rgba(255, 255, 255, 0.1)
+						color: rgba(255, 255, 255, 0.85)
+						border: 1px solid rgba(255, 255, 255, 0.2)
+						border-radius: 4px
+						padding: 4px 12px
+						cursor: pointer
+
+						&:hover
+							background: rgba(255, 255, 255, 0.2)
+
 				label
 					display: block
 					margin: 10px 0
@@ -403,20 +434,40 @@ $height: calc(100vh - 22px)
 					display: block
 					font-size: 0.8rem
 					font-weight: bold
+					color: rgba(255, 255, 255, 0.6)
 
 				input
 					display: block
 					width: 100%
+					background: rgba(255, 255, 255, 0.08)
+					color: rgba(255, 255, 255, 0.85)
+					border: 1px solid rgba(255, 255, 255, 0.2)
+					border-radius: 4px
+					padding: 4px 8px
+
+					&:focus
+						outline: 1px solid rgba(128, 192, 255, 0.6)
+						border-color: rgba(128, 192, 255, 0.6)
 
 					&.invalid
 						border-color: #c33
 						outline-color: #c33
 
+				input[type="submit"]
+					background: rgba(128, 192, 255, 0.2)
+					border: 1px solid rgba(128, 192, 255, 0.4)
+					color: rgba(128, 192, 255, 0.85)
+					cursor: pointer
+					margin-top: 12px
+
+					&:hover
+						background: rgba(128, 192, 255, 0.3)
+
 				.custom-path-section
 					margin: 10px 0
 
 					.regex-error
-						color: #c33
+						color: #f66
 						font-size: 0.75rem
 						margin-top: 2px
 
@@ -429,13 +480,14 @@ $height: calc(100vh - 22px)
 						button
 							font-size: 0.75rem
 							padding: 2px 8px
-							border: 1px solid #999
+							border: 1px solid rgba(255, 255, 255, 0.2)
 							border-radius: 4px
-							background: #f0f0f0
+							background: rgba(255, 255, 255, 0.08)
+							color: rgba(255, 255, 255, 0.7)
 							cursor: pointer
 
 							&:hover
-								background: #ddd
+								background: rgba(255, 255, 255, 0.15)
 
 		.modal-files
 			flex: 1
@@ -450,6 +502,7 @@ $height: calc(100vh - 22px)
 				font-size: 0.8rem
 				font-weight: bold
 				margin-bottom: 4px
+				color: rgba(255, 255, 255, 0.6)
 
 			.file-preview
 				margin: 0
@@ -458,7 +511,7 @@ $height: calc(100vh - 22px)
 				min-height: 200px
 				max-height: 60vh
 				overflow-y: auto
-				border: 1px solid #ddd
+				border: 1px solid rgba(255, 255, 255, 0.15)
 				border-radius: 4px
 				font-size: 0.75rem
 				font-family: monospace
@@ -474,21 +527,25 @@ $height: calc(100vh - 22px)
 						min-width: 3em
 						padding: 1px 8px 1px 0
 						text-align: right
-						color: #999
-						border-right: 1px solid #ddd
+						color: rgba(255, 255, 255, 0.3)
+						border-right: 1px solid rgba(255, 255, 255, 0.1)
 						margin-right: 8px
 						flex-shrink: 0
 						user-select: none
 
+					&.clickable
+						cursor: pointer
+
 					&.excluded
-						color: #c33
+						color: #f66
+						opacity: 0.6
 
 						> span
 							text-decoration: line-through
 
 						&::before
-							color: #c99
+							color: rgba(255, 100, 100, 0.4)
 
-					&:hover
-						background: #f6f8fa
+					&:hover:not(.excluded)
+						background: rgba(255, 255, 255, 0.08)
 </style>
