@@ -158,8 +158,6 @@
 		const idx = comic.images.indexOf(filename);
 		if (idx !== -1) {
 			imgPointer = idx + 1;
-			tmpComic = {};
-			showInfo = false;
 		}
 	}
 </script>
