@@ -191,54 +191,61 @@
 						<h3>{comic.file}</h3>
 						<button class="modal-close" onclick={() => { tmpComic = {}; showInfo = false; }}>✕</button>
 					</div>
-					<form onsubmit={handleSubmit}>
-						<div class="buttons">
-							<button type="button" onclick={reParse}>re parse</button>
-							<button type="button" onclick={createNewFile}>create new file</button>
-						</div>
-						{#each ['brand', 'genre', 'title', 'original', 'file'] as n}
-							<label>
-								<span>
-									{#if n === 'brand'}
-										<a href="{link('/brand/' + getField('brand'))}">{n}</a>
-									{:else}
-										{n}
-									{/if}
-								</span>
-								<input
-									value={getField(n)}
-									oninput={(e) => setField(n, e.target.value)}
-								/>
-							</label>
-						{/each}
-						<div class="custom-path-section">
-							<label>
-								<span>custom_path</span>
-								<input
-									value={getField('custom_path')}
-									oninput={(e) => setField('custom_path', e.target.value)}
-									class:invalid={customPathError}
-								/>
-							</label>
-							{#if customPathError}
-								<div class="regex-error">{customPathError}</div>
-							{/if}
-							{#if directories.length > 0}
-								<div class="dir-buttons">
-									{#each directories as dir}
-										<button type="button" onclick={() => setCustomPathDir(dir)}>{dir}/</button>
-									{/each}
+					<div class="modal-body">
+						<div class="modal-form">
+							<form onsubmit={handleSubmit}>
+								<div class="buttons">
+									<button type="button" onclick={reParse}>re parse</button>
+									<button type="button" onclick={createNewFile}>create new file</button>
 								</div>
-							{/if}
-							<ul class="file-preview">
-								{#each comic['origin-images'] || [] as img}
-									{@const excluded = customPathRegex ? !customPathRegex.test(img) : false}
-									<li class:excluded>{img}</li>
+								{#each ['brand', 'genre', 'title', 'original', 'file'] as n}
+									<label>
+										<span>
+											{#if n === 'brand'}
+												<a href="{link('/brand/' + getField('brand'))}">{n}</a>
+											{:else}
+												{n}
+											{/if}
+										</span>
+										<input
+											value={getField(n)}
+											oninput={(e) => setField(n, e.target.value)}
+										/>
+									</label>
 								{/each}
-							</ul>
+								<div class="custom-path-section">
+									<label>
+										<span>custom_path</span>
+										<input
+											value={getField('custom_path')}
+											oninput={(e) => setField('custom_path', e.target.value)}
+											class:invalid={customPathError}
+										/>
+									</label>
+									{#if customPathError}
+										<div class="regex-error">{customPathError}</div>
+									{/if}
+									{#if directories.length > 0}
+										<div class="dir-buttons">
+											{#each directories as dir}
+												<button type="button" onclick={() => setCustomPathDir(dir)}>{dir}/</button>
+											{/each}
+										</div>
+									{/if}
+								</div>
+								<input type="submit" value="update" />
+							</form>
 						</div>
-						<input type="submit" value="update" />
-					</form>
+						<div class="modal-files">
+							<div class="file-preview-header">images ({comic['origin-images']?.length || 0})</div>
+							<ol class="file-preview">
+								{#each comic['origin-images'] || [] as img, i}
+									{@const excluded = customPathRegex ? !customPathRegex.test(img) : false}
+									<li class:excluded><span>{img}</span></li>
+								{/each}
+							</ol>
+						</div>
+					</div>
 				</div>
 			</div>
 		{/if}
@@ -352,6 +359,9 @@ $height: calc(100vh - 22px)
 		max-height: 90vh
 		overflow-y: auto
 
+		@media (min-width: 1200px)
+			max-width: 1100px
+
 		.modal-header
 			display: flex
 			justify-content: space-between
@@ -372,67 +382,113 @@ $height: calc(100vh - 22px)
 			cursor: pointer
 			padding: 0 4px
 
-		form
-			.buttons
-				margin-bottom: 8px
+		.modal-body
+			@media (min-width: 1200px)
+				display: flex
+				gap: 16px
 
-			label
-				display: block
-				margin: 10px 0
+		.modal-form
+			flex: 1
+			min-width: 0
 
-			span
-				display: block
+			form
+				.buttons
+					margin-bottom: 8px
+
+				label
+					display: block
+					margin: 10px 0
+
+				span
+					display: block
+					font-size: 0.8rem
+					font-weight: bold
+
+				input
+					display: block
+					width: 100%
+
+					&.invalid
+						border-color: #c33
+						outline-color: #c33
+
+				.custom-path-section
+					margin: 10px 0
+
+					.regex-error
+						color: #c33
+						font-size: 0.75rem
+						margin-top: 2px
+
+					.dir-buttons
+						display: flex
+						flex-wrap: wrap
+						gap: 4px
+						margin-top: 4px
+
+						button
+							font-size: 0.75rem
+							padding: 2px 8px
+							border: 1px solid #999
+							border-radius: 4px
+							background: #f0f0f0
+							cursor: pointer
+
+							&:hover
+								background: #ddd
+
+		.modal-files
+			flex: 1
+			min-width: 0
+			display: flex
+			flex-direction: column
+
+			@media (max-width: 1199px)
+				margin-top: 12px
+
+			.file-preview-header
 				font-size: 0.8rem
 				font-weight: bold
+				margin-bottom: 4px
 
-			input
-				display: block
-				width: 100%
+			.file-preview
+				margin: 0
+				padding: 0
+				flex: 1
+				min-height: 200px
+				max-height: 60vh
+				overflow-y: auto
+				border: 1px solid #ddd
+				border-radius: 4px
+				font-size: 0.75rem
+				font-family: monospace
+				counter-reset: line-number
 
-				&.invalid
-					border-color: #c33
-					outline-color: #c33
-
-			.custom-path-section
-				margin: 10px 0
-
-				.regex-error
-					color: #c33
-					font-size: 0.75rem
-					margin-top: 2px
-
-				.dir-buttons
+				li
 					display: flex
-					flex-wrap: wrap
-					gap: 4px
-					margin-top: 4px
+					counter-increment: line-number
 
-					button
-						font-size: 0.75rem
-						padding: 2px 8px
-						border: 1px solid #999
-						border-radius: 4px
-						background: #f0f0f0
-						cursor: pointer
+					&::before
+						content: counter(line-number)
+						display: inline-block
+						min-width: 3em
+						padding: 1px 8px 1px 0
+						text-align: right
+						color: #999
+						border-right: 1px solid #ddd
+						margin-right: 8px
+						flex-shrink: 0
+						user-select: none
 
-						&:hover
-							background: #ddd
+					&.excluded
+						color: #c33
 
-				.file-preview
-					margin: 6px 0 0
-					padding: 0
-					list-style: none
-					max-height: 200px
-					overflow-y: auto
-					border: 1px solid #ddd
-					border-radius: 4px
-					font-size: 0.75rem
-					font-family: monospace
-
-					li
-						padding: 1px 8px
-
-						&.excluded
-							color: #c33
+						> span
 							text-decoration: line-through
+
+						&::before
+							color: #c99
+
+					&:hover
+						background: #f6f8fa
 </style>
