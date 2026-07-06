@@ -21,11 +21,13 @@
 
 <style lang="sass">
 .icon-button
-	display: inline-flex
+	// Block-level flex avoids the inline baseline strut so the 24px button does
+	// not inflate the dense-table row box beyond the 24px type line.
+	display: flex
 	align-items: center
 	justify-content: center
-	width: 36px
-	height: 36px
+	width: 24px
+	height: 24px
 	padding: 0
 	border: none
 	border-radius: var(--radius-sm)

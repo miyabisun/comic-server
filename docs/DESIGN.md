@@ -107,6 +107,18 @@ Domain components on top of the Sumi recipes:
   template's emoji/text-glyph ban does not apply to them. Lit = star-on,
   unlit = muted; level order comes from `lib/levels.js`. Tapping a star
   moves the comic to that shelf — non-destructive, so no confirmation.
+- **Dense-table row controls (Bookshelf / Brand tables):** inside these
+  two tables — and only there — the template's 36px icon-button recipe
+  is relaxed to a **24×24px hit area** (the floor; never smaller) so
+  that control chrome does not set the row height. All tbody rows share
+  **one uniform computed height** across every shelf (with or without a
+  delete control, including soft-deleted rows), and Bookshelf and Brand
+  rows match each other. The row height is driven by the type line box
+  plus a consistent `--sp-1` vertical cell padding — roughly 32px at
+  body size — never by buttons and never by a hardcoded per-row height.
+  Icon-buttons everywhere else (reader info button, modal close) keep
+  the template's 36px recipe; this exception must not leak out of the
+  dense tables.
 - **Shelf nav (Header):** the shelf list is the app's primary nav and
   uses the Sumi tab recipe: label type, muted when inactive, on-surface
   with a 2px accent underline for the current shelf. The app title links
@@ -142,3 +154,5 @@ Domain components on top of the Sumi recipes:
   proofing surface, not chrome.
 - Don't let modal or overlay chrome compete with the page image: reader
   overlays stay on scrim tokens and appear only at the canvas edges.
+- Don't reuse the dense-table 24px icon-button outside the Bookshelf /
+  Brand tables — everywhere else the template's 36px recipe stands.

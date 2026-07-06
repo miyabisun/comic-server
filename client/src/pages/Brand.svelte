@@ -189,6 +189,10 @@
 			tr
 				width: 100%
 
+			td
+				padding: var(--sp-1) 0
+				line-height: 1.5
+
 		.deleted
 			color: var(--c-text-muted)
 
