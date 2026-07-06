@@ -1,3 +1,5 @@
+import 'normalize.css';
+import './global.sass';
 import { mount } from 'svelte';
 import App from './App.svelte';
 

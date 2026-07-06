@@ -22,8 +22,9 @@ ul
 
 	li
 		cursor: pointer
+		color: var(--c-text-muted)
 		&.up
-			color: #AA4
+			color: var(--c-star-on)
 		&:hover
-			color: #00F
+			color: var(--c-accent)
 </style>

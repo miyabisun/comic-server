@@ -7,6 +7,7 @@
 	import { levelGe } from '$lib/levels.js';
 	import { createHoldRepeat } from '$lib/hold-repeat.svelte.js';
 	import { reloadOnFocus } from '$lib/reload-on-focus.svelte.js';
+	import Icon from '$lib/components/Icon.svelte';
 
 	let { params } = $props();
 	let id = $derived(params.id);
@@ -245,7 +246,9 @@
 					{/each}
 				</ul>
 			</div>
-			<button class="info-button" onclick={() => { showInfo = true; }}>ℹ</button>
+			<button class="info-button" aria-label="情報を表示" onclick={() => { showInfo = true; }}>
+				<Icon name="info" />
+			</button>
 		</div>
 
 		{#if showInfo}
@@ -253,7 +256,9 @@
 				<div class="modal" onclick={(e) => e.stopPropagation()}>
 					<div class="modal-header">
 						<h3>{comic.file}</h3>
-						<button class="modal-close" onclick={() => { tmpComic = {}; showInfo = false; }}>✕</button>
+						<button class="modal-close" aria-label="閉じる" onclick={() => { tmpComic = {}; showInfo = false; }}>
+							<Icon name="x" />
+						</button>
 					</div>
 					<div class="upscale-section">
 						{#if upscaleStatus.status === 'idle'}
@@ -340,12 +345,13 @@
 $height: calc(100vh - 22px)
 
 #comic
-	background-color: rgba(255, 255, 255, 0.85)
-	color: rgba(0, 0, 0, 0.85)
+	background-color: var(--c-bg)
+	color: var(--c-text)
 
 	.canvas
 		height: fit-content
 		position: relative
+		/* domain exception: reader checkerboard stays light in both themes (see docs/DESIGN.md) */
 		background-color: white
 		background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)
 		background-position: 0 0, 30px 30px
@@ -375,8 +381,9 @@ $height: calc(100vh - 22px)
 		top: 0
 		right: 4px
 		padding: 2px 4px
-		border-radius: 8px
-		background: rgba(255, 255, 255, 0.4)
+		border-radius: var(--radius-md)
+		background: var(--c-scrim)
+		color: var(--c-on-scrim)
 
 	.review
 		display: flex
@@ -385,8 +392,9 @@ $height: calc(100vh - 22px)
 		top: 2px
 		left: 2px
 		padding: 2px 4px
-		border-radius: 8px
-		background: rgba(255, 255, 255, 0.4)
+		border-radius: var(--radius-md)
+		background: var(--c-scrim)
+		color: var(--c-on-scrim)
 
 		ul
 			display: flex
@@ -396,31 +404,32 @@ $height: calc(100vh - 22px)
 
 			li
 				&.up
-					color: #AA4
+					color: var(--c-star-on)
 					cursor: pointer
 				&:hover
-					color: #00F
+					color: var(--c-accent)
 					cursor: pointer
 
 	.info-button
+		display: flex
+		align-items: center
+		justify-content: center
 		position: fixed
 		bottom: 28px
 		left: 8px
-		width: 32px
-		height: 32px
+		width: 36px
+		height: 36px
 		padding: 0
 		border: none
-		border-radius: 50%
-		background-color: rgba(255, 255, 255, 0.8)
-		font-size: 16px
-		line-height: 32px
-		text-align: center
+		border-radius: var(--radius-sm)
+		background-color: var(--c-scrim)
+		color: var(--c-on-scrim)
 		cursor: pointer
 		user-select: none
 		z-index: 10
 
 		&:hover
-			background-color: rgba(255, 255, 255, 1)
+			background-color: var(--c-scrim-strong)
 
 	.modal-overlay
 		position: fixed
@@ -428,17 +437,18 @@ $height: calc(100vh - 22px)
 		left: 0
 		width: 100%
 		height: 100%
-		background-color: rgba(0, 0, 0, 0.5)
+		background-color: var(--c-scrim)
 		display: flex
 		align-items: center
 		justify-content: center
 		z-index: 100
 
 	.modal
-		background: rgba(30, 30, 30, 0.92)
-		color: rgba(255, 255, 255, 0.85)
-		border: 1px solid rgba(255, 255, 255, 0.1)
-		border-radius: 8px
+		background: var(--c-surface)
+		color: var(--c-text)
+		border: 1px solid var(--c-border)
+		border-radius: var(--radius-lg)
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25)
 		padding: 16px 24px
 		max-width: 640px
 		width: 90vw
@@ -456,65 +466,62 @@ $height: calc(100vh - 22px)
 
 			h3
 				margin: 0
-				font-size: 0.9rem
+				font-size: var(--fs-sm)
 				overflow: hidden
 				text-overflow: ellipsis
 				white-space: nowrap
-				color: rgba(255, 255, 255, 0.85)
+				color: var(--c-text)
 
 		.modal-close
+			display: inline-flex
+			align-items: center
+			justify-content: center
+			width: 36px
+			height: 36px
 			border: none
 			background: none
-			font-size: 1.2rem
+			border-radius: var(--radius-sm)
 			cursor: pointer
-			padding: 0 4px
-			color: rgba(255, 255, 255, 0.6)
+			padding: 0
+			color: var(--c-text-sub)
 
 			&:hover
-				color: rgba(255, 255, 255, 0.9)
+				color: var(--c-text)
 
 		.upscale-section
 			margin: 8px 0 12px
 			padding: 8px 12px
-			background: rgba(255, 255, 255, 0.04)
-			border: 1px solid rgba(255, 255, 255, 0.1)
-			border-radius: 4px
+			background: var(--c-overlay-1)
+			border: 1px solid var(--c-border)
+			border-radius: var(--radius-sm)
 
 			.upscale-btn
-				font-size: 0.8rem
+				font-size: var(--fs-sm)
 				padding: 4px 12px
-				border: 1px solid rgba(255, 255, 255, 0.2)
-				border-radius: 4px
+				border: 1px solid var(--c-border)
+				border-radius: var(--radius-sm)
 				cursor: pointer
-				background: rgba(255, 255, 255, 0.08)
-				color: rgba(255, 255, 255, 0.85)
+				background: transparent
+				color: var(--c-text)
 
 				&:hover
-					background: rgba(255, 255, 255, 0.15)
-
-				&.start
-					background: rgba(128, 192, 255, 0.2)
-					border-color: rgba(128, 192, 255, 0.4)
-					color: rgba(128, 192, 255, 0.9)
-
-					&:hover
-						background: rgba(128, 192, 255, 0.3)
+					background: var(--c-overlay-2)
 
 				&.confirm
-					background: rgba(128, 255, 128, 0.15)
-					border-color: rgba(128, 255, 128, 0.3)
-					color: rgba(192, 255, 192, 0.9)
+					background: var(--c-accent)
+					border-color: var(--c-accent)
+					color: var(--c-on-accent)
 
 					&:hover
-						background: rgba(128, 255, 128, 0.25)
+						background: var(--c-accent-hover)
 
 				&.rollback
-					background: rgba(255, 128, 128, 0.15)
-					border-color: rgba(255, 128, 128, 0.3)
-					color: rgba(255, 192, 192, 0.9)
+					background: transparent
+					border-color: var(--c-danger-border)
+					color: var(--c-danger)
 
 					&:hover
-						background: rgba(255, 128, 128, 0.25)
+						background: var(--c-danger-bg)
 
 			.upscale-progress,
 			.upscale-pending
@@ -522,20 +529,20 @@ $height: calc(100vh - 22px)
 				flex-wrap: wrap
 				align-items: center
 				gap: 8px
-				font-size: 0.8rem
+				font-size: var(--fs-xs)
 
 				.label
 					font-weight: bold
-					color: rgba(255, 255, 255, 0.6)
+					color: var(--c-text-sub)
 
 				.count
 					font-family: monospace
-					color: rgba(128, 192, 255, 0.9)
+					color: var(--c-text)
 
 				.file
 					font-family: monospace
-					color: rgba(255, 255, 255, 0.5)
-					font-size: 0.75rem
+					color: var(--c-text-muted)
+					font-size: var(--fs-xs)
 					overflow: hidden
 					text-overflow: ellipsis
 					white-space: nowrap
@@ -555,15 +562,15 @@ $height: calc(100vh - 22px)
 					margin-bottom: 8px
 
 					button
-						background: rgba(255, 255, 255, 0.1)
-						color: rgba(255, 255, 255, 0.85)
-						border: 1px solid rgba(255, 255, 255, 0.2)
-						border-radius: 4px
+						background: transparent
+						color: var(--c-text)
+						border: 1px solid var(--c-border)
+						border-radius: var(--radius-sm)
 						padding: 4px 12px
 						cursor: pointer
 
 						&:hover
-							background: rgba(255, 255, 255, 0.2)
+							background: var(--c-overlay-2)
 
 				label
 					display: block
@@ -571,43 +578,41 @@ $height: calc(100vh - 22px)
 
 				span
 					display: block
-					font-size: 0.8rem
+					font-size: var(--fs-sm)
 					font-weight: bold
-					color: rgba(255, 255, 255, 0.6)
+					color: var(--c-text-sub)
 
 				input
 					display: block
 					width: 100%
-					background: rgba(255, 255, 255, 0.08)
-					color: rgba(255, 255, 255, 0.85)
-					border: 1px solid rgba(255, 255, 255, 0.2)
-					border-radius: 4px
+					background: var(--c-bg)
+					color: var(--c-text)
+					border: 1px solid var(--c-border)
+					border-radius: var(--radius-sm)
 					padding: 4px 8px
 
 					&:focus
-						outline: 1px solid rgba(128, 192, 255, 0.6)
-						border-color: rgba(128, 192, 255, 0.6)
+						border-color: var(--c-accent)
 
 					&.invalid
-						border-color: #c33
-						outline-color: #c33
+						border-color: var(--c-danger)
 
 				input[type="submit"]
-					background: rgba(128, 192, 255, 0.2)
-					border: 1px solid rgba(128, 192, 255, 0.4)
-					color: rgba(128, 192, 255, 0.85)
+					background: transparent
+					border: 1px solid var(--c-border)
+					color: var(--c-text)
 					cursor: pointer
 					margin-top: 12px
 
 					&:hover
-						background: rgba(128, 192, 255, 0.3)
+						background: var(--c-overlay-2)
 
 				.custom-path-section
 					margin: 10px 0
 
 					.regex-error
-						color: #f66
-						font-size: 0.75rem
+						color: var(--c-danger)
+						font-size: var(--fs-xs)
 						margin-top: 2px
 
 					.dir-buttons
@@ -617,16 +622,16 @@ $height: calc(100vh - 22px)
 						margin-top: 4px
 
 						button
-							font-size: 0.75rem
+							font-size: var(--fs-xs)
 							padding: 2px 8px
-							border: 1px solid rgba(255, 255, 255, 0.2)
-							border-radius: 4px
-							background: rgba(255, 255, 255, 0.08)
-							color: rgba(255, 255, 255, 0.7)
+							border: 1px solid var(--c-border)
+							border-radius: var(--radius-sm)
+							background: transparent
+							color: var(--c-text-sub)
 							cursor: pointer
 
 							&:hover
-								background: rgba(255, 255, 255, 0.15)
+								background: var(--c-overlay-2)
 
 		.modal-files
 			flex: 1
@@ -638,10 +643,10 @@ $height: calc(100vh - 22px)
 				margin-top: 12px
 
 			.file-preview-header
-				font-size: 0.8rem
+				font-size: var(--fs-sm)
 				font-weight: bold
 				margin-bottom: 4px
-				color: rgba(255, 255, 255, 0.6)
+				color: var(--c-text-sub)
 
 			.file-preview
 				margin: 0
@@ -650,9 +655,9 @@ $height: calc(100vh - 22px)
 				min-height: 200px
 				max-height: 60vh
 				overflow-y: auto
-				border: 1px solid rgba(255, 255, 255, 0.15)
-				border-radius: 4px
-				font-size: 0.75rem
+				border: 1px solid var(--c-border)
+				border-radius: var(--radius-sm)
+				font-size: var(--fs-xs)
 				font-family: monospace
 				counter-reset: line-number
 
@@ -666,8 +671,8 @@ $height: calc(100vh - 22px)
 						min-width: 3em
 						padding: 1px 8px 1px 0
 						text-align: right
-						color: rgba(255, 255, 255, 0.3)
-						border-right: 1px solid rgba(255, 255, 255, 0.1)
+						color: var(--c-text-muted)
+						border-right: 1px solid var(--c-border)
 						margin-right: 8px
 						flex-shrink: 0
 						user-select: none
@@ -676,15 +681,15 @@ $height: calc(100vh - 22px)
 						cursor: pointer
 
 					&.excluded
-						color: #f66
+						color: var(--c-danger)
 						opacity: 0.6
 
 						> span
 							text-decoration: line-through
 
 						&::before
-							color: rgba(255, 100, 100, 0.4)
+							color: var(--c-danger-dim)
 
 					&:hover:not(.excluded)
-						background: rgba(255, 255, 255, 0.08)
+						background: var(--c-overlay-2)
 </style>

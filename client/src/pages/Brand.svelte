@@ -6,11 +6,15 @@
 	import { updateComic, deleteComic as apiDeleteComic } from '$lib/api.js';
 	import { addToast } from '$lib/toast.svelte.js';
 	import ReviewStars from '$lib/components/ReviewStars.svelte';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import { reloadOnFocus } from '$lib/reload-on-focus.svelte.js';
 
 	let { params } = $props();
 	let name = $derived(params.name);
 	let comics = $state(null);
+	// Single active confirmation at a time: comic.id for a row, 'all' for delete-all.
+	let pendingDelete = $state(null);
+	let deleting = $state(false);
 
 	async function load(_name) {
 		comics = await fetcher(`${config.path.api}/brands/${_name}`);
@@ -39,17 +43,38 @@
 		await load(name);
 	}
 
+	function startDelete(id) {
+		pendingDelete = id;
+	}
+
+	function cancelDelete() {
+		pendingDelete = null;
+	}
+
 	async function deleteComic(comic) {
-		await apiDeleteComic(comic.id);
-		addToast('Deleted');
-		load(name);
+		if (deleting) return;
+		deleting = true;
+		try {
+			await apiDeleteComic(comic.id);
+			addToast('Deleted');
+			await load(name);
+		} finally {
+			deleting = false;
+			pendingDelete = null;
+		}
 	}
 
 	async function deleteAll() {
-		if (!confirm('Are you sure you want to delete all comics for this brand?')) return;
-		await Promise.allSettled(comics.map((comic) => apiDeleteComic(comic.id)));
-		addToast('Deleted all');
-		await load(name);
+		if (deleting) return;
+		deleting = true;
+		try {
+			await Promise.allSettled(comics.map((comic) => apiDeleteComic(comic.id)));
+			addToast('Deleted all');
+			await load(name);
+		} finally {
+			deleting = false;
+			pendingDelete = null;
+		}
 	}
 
 	function handleKeyDown(e) {
@@ -81,7 +106,16 @@
 						</ul>
 					</th>
 					<th class="delete">
-						<span onclick={deleteAll}>🗑</span>
+						<DeleteConfirm
+							active={pendingDelete === 'all'}
+							{deleting}
+							confirmLabel="全削除確認"
+							startAria="すべて削除"
+							confirmAria="すべて削除（確認）"
+							onstart={() => startDelete('all')}
+							onconfirm={deleteAll}
+							oncancel={cancelDelete}
+						/>
 					</th>
 				</tr>
 			</thead>
@@ -107,7 +141,16 @@
 						</td>
 						<td class="delete">
 							{#if !isDeleted}
-								<span onclick={() => deleteComic(comic)}>🗑</span>
+								<DeleteConfirm
+									active={pendingDelete === comic.id}
+									{deleting}
+									confirmLabel="削除確認"
+									startAria="この漫画を削除"
+									confirmAria="この漫画を削除（確認）"
+									onstart={() => startDelete(comic.id)}
+									onconfirm={() => deleteComic(comic)}
+									oncancel={cancelDelete}
+								/>
 							{/if}
 						</td>
 					</tr>
@@ -139,15 +182,15 @@
 			&::-webkit-scrollbar
 				width: 10px
 			&::-webkit-scrollbar-track
-				background: #222
+				background: var(--c-bg)
 			&::-webkit-scrollbar-thumb
-				background: #CCC
+				background: var(--c-border)
 				border-radius: 5px
 			tr
 				width: 100%
 
 		.deleted
-			color: #888
+			color: var(--c-text-muted)
 
 		.brand
 			min-width: 20vw
@@ -170,11 +213,9 @@
 				li
 					cursor: pointer
 					&:hover
-						color: #00F
+						color: var(--c-accent)
 
 		.delete
+			position: relative
 			width: 2vw
-
-			span
-				cursor: pointer
 </style>

@@ -3,6 +3,7 @@
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
 	import { addToast } from '$lib/toast.svelte.js';
+	import Icon from '$lib/components/Icon.svelte';
 
 	const shelfOrder = ['unread', 'legend', 'love', 'favorite', 'like', 'hold', 'deleted'];
 
@@ -67,7 +68,9 @@
 				<div class="compare-panel">
 					<div class="compare-header">
 						<h3>Compare</h3>
-						<button class="close" onclick={() => comparing = null}>x</button>
+						<button class="close" aria-label="閉じる" onclick={() => comparing = null}>
+							<Icon name="x" />
+						</button>
 					</div>
 					<div class="compare-grid">
 						<div class="col">
@@ -139,8 +142,9 @@
 	.notifications
 		.card
 			padding: 12px
-			border-radius: 8px
-			background: rgba(255, 255, 255, 0.08)
+			border-radius: var(--radius-md)
+			background: var(--c-surface)
+			border: 1px solid var(--c-border)
 
 		.summary
 			margin: 0 0 8px
@@ -160,27 +164,27 @@
 				white-space: nowrap
 
 			.shelf
-				opacity: 0.6
-				font-size: 0.85em
+				color: var(--c-text-sub)
+				font-size: var(--fs-sm)
 
 			button
 				padding: 2px 8px
-				border: 1px solid rgba(255, 255, 255, 0.3)
-				border-radius: 4px
+				border: 1px solid var(--c-border)
+				border-radius: var(--radius-sm)
 				background: transparent
-				color: rgba(255, 255, 255, 0.7)
+				color: var(--c-text-sub)
 				cursor: pointer
-				font-size: 0.85em
+				font-size: var(--fs-sm)
 
 				&:hover
-					background: rgba(255, 255, 255, 0.1)
+					background: var(--c-overlay-2)
 
 		.compare-panel
 			margin-top: 12px
 			padding: 12px
-			border-radius: 8px
-			background: rgba(255, 255, 255, 0.06)
-			border: 1px solid rgba(255, 255, 255, 0.15)
+			border-radius: var(--radius-md)
+			background: var(--c-surface)
+			border: 1px solid var(--c-border)
 
 			.compare-header
 				display: flex
@@ -192,15 +196,20 @@
 					margin: 0
 
 				.close
-					padding: 0 6px
+					display: inline-flex
+					align-items: center
+					justify-content: center
+					width: 36px
+					height: 36px
+					padding: 0
 					border: none
+					border-radius: var(--radius-sm)
 					background: transparent
-					color: rgba(255, 255, 255, 0.5)
+					color: var(--c-text-sub)
 					cursor: pointer
-					font-size: 1.2em
 
 					&:hover
-						color: rgba(255, 255, 255, 0.9)
+						color: var(--c-text)
 
 		.compare-grid
 			display: grid
@@ -209,16 +218,16 @@
 
 			h4
 				margin: 0 0 6px
-				font-size: 0.9em
-				opacity: 0.7
+				font-size: var(--fs-sm)
+				color: var(--c-text-sub)
 
 			dl
 				margin: 0
-				font-size: 0.85em
+				font-size: var(--fs-sm)
 
 				dt
 					font-weight: bold
-					opacity: 0.6
+					color: var(--c-text-sub)
 					margin-top: 4px
 
 				dd
@@ -227,15 +236,15 @@
 
 			.mono
 				font-family: monospace
-				font-size: 0.8em
+				font-size: var(--fs-xs)
 
 			.warn
-				color: #f90
+				color: var(--c-danger)
 
 			.view-link
 				display: inline-block
 				margin-top: 6px
-				font-size: 0.85em
+				font-size: var(--fs-sm)
 
 		.compare-actions
 			display: flex
@@ -244,22 +253,23 @@
 
 			button
 				padding: 4px 12px
-				border: 1px solid rgba(255, 255, 255, 0.3)
-				border-radius: 4px
+				border: 1px solid var(--c-border)
+				border-radius: var(--radius-sm)
 				background: transparent
-				color: rgba(255, 255, 255, 0.7)
+				color: var(--c-text-sub)
 				cursor: pointer
-				font-size: 0.85em
+				font-size: var(--fs-sm)
 
 				&:hover
-					background: rgba(255, 255, 255, 0.1)
+					background: var(--c-overlay-2)
 
 				&.primary
-					background: rgba(60, 130, 240, 0.3)
-					border-color: rgba(60, 130, 240, 0.5)
+					background: var(--c-accent)
+					border-color: var(--c-accent)
+					color: var(--c-on-accent)
 
 					&:hover
-						background: rgba(60, 130, 240, 0.5)
+						background: var(--c-accent-hover)
 
 	.shelf-list
 		li
@@ -267,11 +277,11 @@
 				display: flex
 				justify-content: space-between
 				padding: 8px 12px
-				border-radius: 4px
+				border-radius: var(--radius-sm)
 
 				&:hover
-					background: rgba(255, 255, 255, 0.08)
+					background: var(--c-overlay-2)
 
 			.shelf-count
-				opacity: 0.7
+				color: var(--c-text-sub)
 </style>

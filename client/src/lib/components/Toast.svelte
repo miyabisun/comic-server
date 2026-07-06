@@ -29,8 +29,9 @@
 
 .toast
 	padding: 8px 24px
-	border-radius: 8px
-	background: rgba(60, 60, 60, 0.9)
-	color: rgba(255, 255, 255, 0.9)
-	font-size: 0.9rem
+	border-radius: var(--radius-md)
+	background: var(--c-surface)
+	border: 1px solid var(--c-border)
+	color: var(--c-text)
+	font-size: var(--fs-sm)
 </style>
