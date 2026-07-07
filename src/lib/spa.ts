@@ -1,13 +1,13 @@
 import fs from 'fs'
 import path from 'path'
 
-const indexPath = path.join(process.cwd(), 'client/build/index.html')
+const defaultIndexPath = path.join(process.cwd(), 'client/build/index.html')
 const isProd = process.env.NODE_ENV === 'production'
 
 let indexHtml: string | null = null
 let indexMtime = 0
 
-export function getIndexHtml(basePath: string): string | null {
+export function getIndexHtml(basePath: string, indexPath: string = defaultIndexPath): string | null {
   if (isProd && indexHtml) return indexHtml
 
   try {
@@ -23,4 +23,10 @@ export function getIndexHtml(basePath: string): string | null {
     return null
   }
   return indexHtml
+}
+
+// Test-only: clears the module-level cache so tests can exercise the read/reload path in isolation.
+export function __resetIndexHtmlCache(): void {
+  indexHtml = null
+  indexMtime = 0
 }
