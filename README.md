@@ -7,7 +7,7 @@ A self-hosted comic library server with a built-in web viewer. Point it at your 
 ## Quick Start (Docker)
 
 ```bash
-docker run -p 3000:3000 -v /path/to/comics:/comics ghcr.io/miyabisun/comic-server:latest
+docker run -p 3000:3000 -v /path/to/comics:/comics -e COMIC_PATH=/comics ghcr.io/miyabisun/comic-server:latest
 ```
 
 Open `http://localhost:3000` in your browser.
@@ -23,16 +23,47 @@ Open `http://localhost:3000` in your browser.
 
 > To deploy under an Nginx subpath, see [Reverse Proxy docs](docs/reverse-proxy.md).
 
-## Configuration
+## Environment variables
 
-| Variable | Default | Description |
+All server settings below are optional. `bun start` reads `.env` through Bun's
+`--env-file` option; containers receive their settings through `environment` / `-e`.
+Relative paths are resolved from the process working directory.
+
+| Variable | Default when unset | Purpose and handling of empty / invalid values |
 |---|---|---|
-| `COMIC_PATH` | `./comics` | Root directory for comic image folders |
-| `DATABASE_PATH` | `COMIC_PATH/comic.db` | Path to SQLite database file |
-| `PORT` | `3000` | Server port |
-| `BASE_PATH` | (empty) | Path prefix for reverse proxy deployment (e.g., `/comic`). Runtime only — no rebuild needed. |
+| `COMIC_PATH` | `./comics` | Root directory for comic folders. Empty uses the default. Inaccessible paths can fail database opening or directory creation at startup; there is no separate path validation. |
+| `DATABASE_PATH` | `COMIC_PATH/comic.db` | SQLite file. Empty uses the default. An unusable file or missing parent directory fails at database opening. |
+| `PORT` | `3000` | Server port. Converted with `Number(value)`; empty, whitespace, zero and nonnumeric values fall back to `3000`. Other numbers are passed to Bun without application range validation. |
+| `BASE_PATH` | Empty (root) | Runtime URL prefix, e.g. `/comic`. Trailing slashes are removed (`/` becomes root). Nonempty values must start with `/` and contain only ASCII letters, digits, `_`, `-` and `/`; other values fail startup. No rebuild needed. |
+| `UPSCALE_SCRIPT_PATH` | Repository `scripts/upscale-images.sh` (absolute path derived from the source location) | Script run by `bash` for API upscale jobs. Empty uses the default. No startup validation; a missing or unusable script fails the job when invoked. |
+| `NODE_ENV` | Check HTML modification time before reusing the cache | `production` keeps the first SPA HTML cache. Every other value, including empty or unknown values, checks for updates. The Docker image explicitly sets `production`. |
 
-The database (`comic.db`) is automatically created inside `COMIC_PATH` on first startup. Bookshelf directories are also created automatically.
+The database is opened before bookshelf directories are created, so its parent directory
+must already exist. The default SQLite file is inside `COMIC_PATH`; setting `DATABASE_PATH`
+changes that location. The Docker image explicitly sets `PORT=3000`, but does not set
+`COMIC_PATH`: the volume path and `COMIC_PATH` must agree, as in the
+[Compose example](docs/docker-compose.md).
+
+### Image-processing scripts and OS environment
+
+These optional settings are consumed by the bundled scripts, not by the server parser.
+The API inherits the server process environment when starting the upscale script.
+Empty values use the defaults.
+
+| Variable | Default when unset | Consumer and invalid-value handling |
+|---|---|---|
+| `RCUGAN_BIN` | `realcugan-ncnn-vulkan` | Both image scripts: executable name or path. Missing executable fails the script's dependency check. |
+| `RCUGAN_NOISE` | `-1` | `scripts/upscale-images.sh`: passed directly to Real-CUGAN's `-n` option; no script validation. Rejected values fail image processing. |
+
+`scripts/resize-images.sh` currently downsizes with ImageMagick and only checks that
+`RCUGAN_BIN` exists. Its `RCUGAN_MODEL` assignment and noise option do not affect processing.
+
+`PATH` is the OS executable search path for `bash`, ImageMagick (`magick`) and Real-CUGAN.
+The current Docker image does not bundle the image-processing scripts or these processing
+tools. API upscaling requires installing them and making the script available at
+`UPSCALE_SCRIPT_PATH` in the runtime environment.
+The maintenance CLI `scripts/fix-filenames.ts` uses the same `COMIC_PATH` and `DATABASE_PATH`
+defaults as the server. Build and test environment settings are not server configuration.
 
 ## Folder Structure
 

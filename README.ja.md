@@ -7,7 +7,7 @@
 ## Quick Start (Docker)
 
 ```bash
-docker run -p 3000:3000 -v /path/to/comics:/comics ghcr.io/miyabisun/comic-server:latest
+docker run -p 3000:3000 -v /path/to/comics:/comics -e COMIC_PATH=/comics ghcr.io/miyabisun/comic-server:latest
 ```
 
 ブラウザで `http://localhost:3000` を開く。
@@ -23,16 +23,13 @@ COMIC_PATH=/path/to/comics bun start
 
 > Nginx でサブパス配下にデプロイする場合は [リバースプロキシ設定](docs/reverse-proxy.md) を参照。
 
-## 設定
+## 環境変数
 
-| 環境変数 | デフォルト | 説明 |
-|---|---|---|
-| `COMIC_PATH` | `./comics` | コミック画像フォルダのパス |
-| `DATABASE_PATH` | `COMIC_PATH/comic.db` | SQLite データベースファイルのパス |
-| `PORT` | `3000` | サーバーのポート番号 |
-| `BASE_PATH` | (なし) | リバースプロキシ配下で使う場合のパス (例: `/comic`)。ランタイム設定のみで再ビルド不要。 |
-
-データベース (`comic.db`) は初回起動時に `COMIC_PATH` 内に自動生成されます。本棚ディレクトリも自動で作成されます。
+現行の変数・必須条件・未設定時の既定値・不正値の扱いは
+[README.md の環境変数一覧](README.md#environment-variables)を正本とする。
+サーバー設定と、画像処理スクリプト・OS の実行環境を分けて掲載している。
+`bun start` は `.env` を読み込み、Docker では `environment` / `-e` で渡す。
+`COMIC_PATH` とボリュームのマウント先を一致させ、DB の親ディレクトリを先に用意する。
 
 ## フォルダ構成
 
