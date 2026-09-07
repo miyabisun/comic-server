@@ -46,23 +46,17 @@ app.post('/api/regist', async (c) => {
     eq(comics.file, sanitizedName)
   ).get()
 
-  if (existing) {
-    if (!fs.existsSync(duplicatesDir)) fs.mkdirSync(duplicatesDir)
-    const dest = `${duplicatesDir}/${name}`
-    if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true })
-    fs.renameSync(src, dest)
-    console.warn(`[regist] duplicate moved to duplicates/: ${name} (id: ${existing.id}, bookshelf: ${existing.bookshelf})`)
-    return c.json({ status: 'duplicated', name })
-  }
-
-  // Check if destination already exists in unread/
   const dest = `${unreadDir}/${sanitizedName}`
-  if (fs.existsSync(dest)) {
+  if (existing || fs.existsSync(dest)) {
     if (!fs.existsSync(duplicatesDir)) fs.mkdirSync(duplicatesDir)
     const dupDest = `${duplicatesDir}/${name}`
     if (fs.existsSync(dupDest)) fs.rmSync(dupDest, { recursive: true, force: true })
     fs.renameSync(src, dupDest)
-    console.warn(`[regist] destination exists in unread/, moved to duplicates/: ${name}`)
+    if (existing) {
+      console.warn(`[regist] duplicate moved to duplicates/: ${name} (id: ${existing.id}, bookshelf: ${existing.bookshelf})`)
+    } else {
+      console.warn(`[regist] destination exists in unread/, moved to duplicates/: ${name}`)
+    }
     return c.json({ status: 'duplicated', name })
   }
 

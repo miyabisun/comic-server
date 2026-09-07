@@ -8,3 +8,5 @@ import path from 'path'
 // This preload runs before test files and their import chains, so the db opens a valid path.
 const comicDir = fs.mkdtempSync(path.join(os.tmpdir(), 'comic-server-test-'))
 process.env.COMIC_PATH = comicDir
+process.env.DATABASE_PATH = path.join(comicDir, 'comic.db')
+process.on('exit', () => fs.rmSync(comicDir, { recursive: true, force: true }))

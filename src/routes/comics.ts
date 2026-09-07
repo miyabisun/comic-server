@@ -222,24 +222,17 @@ app.post('/api/comics', async (c) => {
   }
 
   try {
-    const result = db.insert(comics).values({
+    const values = {
       title: body.title,
-      file: body.file,
       bookshelf: body.bookshelf || 'unread',
       genre: body.genre,
       brand: body.brand,
       original: body.original,
       custom_path: body.custom_path,
-    }).onConflictDoUpdate({
+    }
+    const result = db.insert(comics).values({ file: body.file, ...values }).onConflictDoUpdate({
       target: comics.file,
-      set: {
-        title: body.title,
-        bookshelf: body.bookshelf || 'unread',
-        genre: body.genre,
-        brand: body.brand,
-        original: body.original,
-        custom_path: body.custom_path,
-      },
+      set: values,
     }).returning().get()
 
     return c.json(result, 201)
