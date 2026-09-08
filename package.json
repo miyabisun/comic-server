@@ -1,6 +1,6 @@
 {
   "name": "comic-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "cd client && bunx vite build --watch & bun --env-file=.env src/index.ts",
