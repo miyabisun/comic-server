@@ -2,8 +2,7 @@
 # Resize images to fit within 4K (3840x2160) bounds.
 #
 # - Large images (> 4K):   downscale with magick
-# - Small images (<= 4K):  upscale with Real-CUGAN 2x, then fit to 4K
-# - Already 4K-fit images: skip
+# - Images within 4K bounds: skip
 # - JPEG source -> JPEG q95 output
 # - PNG source  -> PNG max compression output
 #
@@ -15,7 +14,6 @@
 # Options:
 #   --in-place          Overwrite original files in place
 #   -r, --recursive     Process all subdirectories recursively (requires --in-place)
-#   -n, --noise <0-3>   Real-CUGAN denoise level (default: -1, no denoise)
 #   --dry-run           Show what would be done without processing
 #
 # Example:
@@ -28,9 +26,6 @@ set -euo pipefail
 MAX_W=3840
 MAX_H=2160
 JPEG_QUALITY=95
-RCUGAN_BIN="${RCUGAN_BIN:-realcugan-ncnn-vulkan}"
-RCUGAN_NOISE=-1
-RCUGAN_MODEL="${RCUGAN_MODEL:-models-se}"
 DRY_RUN=false
 IN_PLACE=false
 RECURSIVE=false
@@ -45,11 +40,11 @@ POSITIONAL=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -n|--noise)     RCUGAN_NOISE="$2"; shift 2 ;;
     --dry-run)      DRY_RUN=true; shift ;;
     --in-place)     IN_PLACE=true; shift ;;
     -r|--recursive) RECURSIVE=true; shift ;;
     -h|--help)      usage ;;
+    -*)             echo "Error: Unknown option: $1" >&2; usage ;;
     *)              POSITIONAL+=("$1"); shift ;;
   esac
 done
@@ -72,7 +67,6 @@ fi
 
 # --- Verify dependencies ---
 command -v magick &>/dev/null || { echo "Error: magick (ImageMagick 7) is required" >&2; exit 1; }
-command -v "$RCUGAN_BIN" &>/dev/null || { echo "Error: $RCUGAN_BIN not found" >&2; exit 1; }
 
 # --- Helpers ---
 is_jpeg() {

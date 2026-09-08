@@ -52,11 +52,16 @@ Empty values use the defaults.
 
 | Variable | Default when unset | Consumer and invalid-value handling |
 |---|---|---|
-| `RCUGAN_BIN` | `realcugan-ncnn-vulkan` | Both image scripts: executable name or path. Missing executable fails the script's dependency check. |
+| `RCUGAN_BIN` | `realcugan-ncnn-vulkan` | `scripts/upscale-images.sh`: executable name or path. Missing executable fails the script's dependency check. |
 | `RCUGAN_NOISE` | `-1` | `scripts/upscale-images.sh`: passed directly to Real-CUGAN's `-n` option; no script validation. Rejected values fail image processing. |
 
-`scripts/resize-images.sh` currently downsizes with ImageMagick and only checks that
-`RCUGAN_BIN` exists. Its `RCUGAN_MODEL` assignment and noise option do not affect processing.
+`scripts/resize-images.sh` requires ImageMagick 7 (`magick`) and standard shell tools.
+It downsizes images exceeding 3840×2160 to fit those bounds and skips smaller images;
+it does not upscale. JPEG output uses quality 95 and PNG output uses maximum compression.
+Remove the obsolete `-n` / `--noise` option from existing resize commands (it now fails
+as an unknown option), and remove resize-only `RCUGAN_BIN` / `RCUGAN_MODEL` settings.
+`RCUGAN_*` variables have no effect on resizing; keep the settings needed by
+`scripts/upscale-images.sh` when using that separate script.
 
 `PATH` is the OS executable search path for `bash`, ImageMagick (`magick`) and Real-CUGAN.
 The current Docker image does not bundle the image-processing scripts or these processing
