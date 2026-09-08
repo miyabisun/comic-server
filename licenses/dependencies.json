@@ -1,0 +1,863 @@
+[
+  {
+    "name": "@drizzle-team/brocli",
+    "version": "0.10.2",
+    "license": "Apache-2.0",
+    "author": "Drizzle Team",
+    "source": "git+https://github.com/drizzle-team/brocli.git"
+  },
+  {
+    "name": "@esbuild-kit/core-utils",
+    "version": "3.3.2",
+    "license": "MIT",
+    "author": "Hiroki Osame",
+    "source": "esbuild-kit/core-utils"
+  },
+  {
+    "name": "@esbuild-kit/esm-loader",
+    "version": "2.6.5",
+    "license": "MIT",
+    "author": "Hiroki Osame",
+    "source": "esbuild-kit/esm-loader"
+  },
+  {
+    "name": "@esbuild/linux-x64",
+    "version": "0.19.12",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/evanw/esbuild"
+  },
+  {
+    "name": "@esbuild/linux-x64",
+    "version": "0.25.12",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/evanw/esbuild.git"
+  },
+  {
+    "name": "@jridgewell/gen-mapping",
+    "version": "0.3.13",
+    "license": "MIT",
+    "author": "Justin Ridgewell <justin@ridgewell.name>",
+    "source": "git+https://github.com/jridgewell/sourcemaps.git"
+  },
+  {
+    "name": "@jridgewell/remapping",
+    "version": "2.3.5",
+    "license": "MIT",
+    "author": "Justin Ridgewell <justin@ridgewell.name>",
+    "source": "git+https://github.com/jridgewell/sourcemaps.git"
+  },
+  {
+    "name": "@jridgewell/resolve-uri",
+    "version": "3.1.2",
+    "license": "MIT",
+    "author": "Justin Ridgewell <justin@ridgewell.name>",
+    "source": "https://github.com/jridgewell/resolve-uri"
+  },
+  {
+    "name": "@jridgewell/sourcemap-codec",
+    "version": "1.5.5",
+    "license": "MIT",
+    "author": "Justin Ridgewell <justin@ridgewell.name>",
+    "source": "git+https://github.com/jridgewell/sourcemaps.git"
+  },
+  {
+    "name": "@jridgewell/trace-mapping",
+    "version": "0.3.31",
+    "license": "MIT",
+    "author": "Justin Ridgewell <justin@ridgewell.name>",
+    "source": "git+https://github.com/jridgewell/sourcemaps.git"
+  },
+  {
+    "name": "@parcel/watcher",
+    "version": "2.5.6",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/parcel-bundler/watcher.git"
+  },
+  {
+    "name": "@parcel/watcher-linux-x64-glibc",
+    "version": "2.5.6",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/parcel-bundler/watcher.git"
+  },
+  {
+    "name": "@parcel/watcher-linux-x64-musl",
+    "version": "2.5.6",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/parcel-bundler/watcher.git"
+  },
+  {
+    "name": "@petamoriken/float16",
+    "version": "3.9.3",
+    "license": "MIT",
+    "author": "Kenta Moriuchi <moriken@kimamass.com> (https://moriken.dev)",
+    "source": "https://github.com/petamoriken/float16.git"
+  },
+  {
+    "name": "@rollup/rollup-linux-x64-gnu",
+    "version": "4.57.1",
+    "license": "MIT",
+    "author": "Lukas Taegert-Atkinson",
+    "source": "git+https://github.com/rollup/rollup.git"
+  },
+  {
+    "name": "@rollup/rollup-linux-x64-musl",
+    "version": "4.57.1",
+    "license": "MIT",
+    "author": "Lukas Taegert-Atkinson",
+    "source": "git+https://github.com/rollup/rollup.git"
+  },
+  {
+    "name": "@sveltejs/acorn-typescript",
+    "version": "1.0.9",
+    "license": "MIT",
+    "author": "tyrealhu and the Svelte team",
+    "source": "git+https://github.com/sveltejs/acorn-typescript.git"
+  },
+  {
+    "name": "@sveltejs/vite-plugin-svelte",
+    "version": "5.1.1",
+    "license": "MIT",
+    "author": "dominikg",
+    "source": "git+https://github.com/sveltejs/vite-plugin-svelte.git"
+  },
+  {
+    "name": "@sveltejs/vite-plugin-svelte",
+    "version": "6.2.4",
+    "license": "MIT",
+    "author": "dominikg",
+    "source": "git+https://github.com/sveltejs/vite-plugin-svelte.git"
+  },
+  {
+    "name": "@sveltejs/vite-plugin-svelte-inspector",
+    "version": "4.0.1",
+    "license": "MIT",
+    "author": "dominikg",
+    "source": "git+https://github.com/sveltejs/vite-plugin-svelte.git"
+  },
+  {
+    "name": "@sveltejs/vite-plugin-svelte-inspector",
+    "version": "5.0.2",
+    "license": "MIT",
+    "author": "dominikg",
+    "source": "git+https://github.com/sveltejs/vite-plugin-svelte.git"
+  },
+  {
+    "name": "@types/bun",
+    "version": "1.3.9",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "@types/estree",
+    "version": "1.0.8",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "@types/node",
+    "version": "25.3.0",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "@types/trusted-types",
+    "version": "2.0.7",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "acorn",
+    "version": "8.15.0",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/acornjs/acorn.git"
+  },
+  {
+    "name": "adler2",
+    "version": "2.0.1",
+    "license": "0BSD OR MIT OR Apache-2.0",
+    "author": "Jonas Schievink <jonasschievink@gmail.com>, oyvindln <oyvindln@users.noreply.github.com>",
+    "source": "https://github.com/oyvindln/adler2"
+  },
+  {
+    "name": "aria-query",
+    "version": "5.3.2",
+    "license": "Apache-2.0",
+    "author": "Jesse Beach <splendidnoise@gmail.com>",
+    "source": "git+https://github.com/A11yance/aria-query.git"
+  },
+  {
+    "name": "autocfg",
+    "version": "1.5.1",
+    "license": "Apache-2.0 OR MIT",
+    "author": "Josh Stone <cuviper@gmail.com>",
+    "source": "https://github.com/cuviper/autocfg"
+  },
+  {
+    "name": "axobject-query",
+    "version": "4.1.0",
+    "license": "Apache-2.0",
+    "author": "Jesse Beach <splendidnoise@gmail.com>",
+    "source": "git+https://github.com/A11yance/axobject-query.git"
+  },
+  {
+    "name": "bitflags",
+    "version": "2.13.1",
+    "license": "MIT OR Apache-2.0",
+    "author": "The Rust Project Developers",
+    "source": "https://github.com/bitflags/bitflags"
+  },
+  {
+    "name": "buffer-from",
+    "version": "1.1.2",
+    "license": "MIT",
+    "author": "",
+    "source": "LinusU/buffer-from"
+  },
+  {
+    "name": "bun-types",
+    "version": "1.3.9",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/oven-sh/bun"
+  },
+  {
+    "name": "bytemuck",
+    "version": "1.25.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "author": "Lokathor <zefria@gmail.com>",
+    "source": "https://github.com/Lokathor/bytemuck"
+  },
+  {
+    "name": "byteorder-lite",
+    "version": "0.1.0",
+    "license": "Unlicense OR MIT",
+    "author": "",
+    "source": "https://github.com/image-rs/byteorder-lite"
+  },
+  {
+    "name": "cfg-if",
+    "version": "1.0.4",
+    "license": "MIT OR Apache-2.0",
+    "author": "Alex Crichton <alex@alexcrichton.com>",
+    "source": "https://github.com/rust-lang/cfg-if"
+  },
+  {
+    "name": "chokidar",
+    "version": "4.0.3",
+    "license": "MIT",
+    "author": "Paul Miller (https://paulmillr.com)",
+    "source": "git+https://github.com/paulmillr/chokidar.git"
+  },
+  {
+    "name": "clsx",
+    "version": "2.1.1",
+    "license": "MIT",
+    "author": "Luke Edwards",
+    "source": "lukeed/clsx"
+  },
+  {
+    "name": "crc32fast",
+    "version": "1.5.1",
+    "license": "MIT OR Apache-2.0",
+    "author": "Sam Rijs <srijs@airpost.net>, Alex Crichton <alex@alexcrichton.com>",
+    "source": "https://github.com/srijs/rust-crc32fast"
+  },
+  {
+    "name": "date-fns",
+    "version": "4.1.0",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/date-fns/date-fns"
+  },
+  {
+    "name": "debug",
+    "version": "4.4.3",
+    "license": "MIT",
+    "author": "Josh Junon (https://github.com/qix-)",
+    "source": "git://github.com/debug-js/debug.git"
+  },
+  {
+    "name": "deepmerge",
+    "version": "4.3.1",
+    "license": "MIT",
+    "author": "",
+    "source": "git://github.com/TehShrike/deepmerge.git"
+  },
+  {
+    "name": "detect-libc",
+    "version": "2.1.2",
+    "license": "Apache-2.0",
+    "author": "Lovell Fuller <npm@lovell.info>",
+    "source": "git://github.com/lovell/detect-libc.git"
+  },
+  {
+    "name": "devalue",
+    "version": "5.6.2",
+    "license": "MIT",
+    "author": "",
+    "source": "sveltejs/devalue"
+  },
+  {
+    "name": "devalue",
+    "version": "5.6.3",
+    "license": "MIT",
+    "author": "",
+    "source": "sveltejs/devalue"
+  },
+  {
+    "name": "drizzle-kit",
+    "version": "0.30.6",
+    "license": "MIT",
+    "author": "Drizzle Team",
+    "source": "git+https://github.com/drizzle-team/drizzle-orm.git"
+  },
+  {
+    "name": "drizzle-orm",
+    "version": "0.39.3",
+    "license": "Apache-2.0",
+    "author": "Drizzle Team",
+    "source": "git+https://github.com/drizzle-team/drizzle-orm.git"
+  },
+  {
+    "name": "env-paths",
+    "version": "3.0.0",
+    "license": "MIT",
+    "author": "Sindre Sorhus",
+    "source": "sindresorhus/env-paths"
+  },
+  {
+    "name": "esbuild",
+    "version": "0.19.12",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/evanw/esbuild"
+  },
+  {
+    "name": "esbuild",
+    "version": "0.25.12",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/evanw/esbuild.git"
+  },
+  {
+    "name": "esbuild-register",
+    "version": "3.6.0",
+    "license": "MIT",
+    "author": "",
+    "source": ""
+  },
+  {
+    "name": "esm-env",
+    "version": "1.2.2",
+    "license": "MIT",
+    "author": "Ben McCann (https://www.benmccann.com)",
+    "source": "https://github.com/benmccann/esm-env.git"
+  },
+  {
+    "name": "esrap",
+    "version": "2.2.3",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/sveltejs/esrap.git"
+  },
+  {
+    "name": "fdeflate",
+    "version": "0.3.7",
+    "license": "MIT OR Apache-2.0",
+    "author": "The image-rs Developers",
+    "source": "https://github.com/image-rs/fdeflate"
+  },
+  {
+    "name": "fdir",
+    "version": "6.5.0",
+    "license": "MIT",
+    "author": "thecodrr <thecodrr@protonmail.com>",
+    "source": "git+https://github.com/thecodrr/fdir.git"
+  },
+  {
+    "name": "flate2",
+    "version": "1.1.10",
+    "license": "MIT OR Apache-2.0",
+    "author": "Alex Crichton <alex@alexcrichton.com>, Josh Triplett <josh@joshtriplett.org>",
+    "source": "https://github.com/rust-lang/flate2-rs"
+  },
+  {
+    "name": "fs-readdir-recursive",
+    "version": "1.1.0",
+    "license": "MIT",
+    "author": "Jonathan Ong",
+    "source": "fs-utils/fs-readdir-recursive"
+  },
+  {
+    "name": "gel",
+    "version": "2.2.0",
+    "license": "Apache-2.0",
+    "author": "Gel <info@geldata.com>",
+    "source": "https://github.com/geldata/gel-js.git"
+  },
+  {
+    "name": "get-tsconfig",
+    "version": "4.13.6",
+    "license": "MIT",
+    "author": "Hiroki Osame",
+    "source": "privatenumber/get-tsconfig"
+  },
+  {
+    "name": "hono",
+    "version": "4.11.10",
+    "license": "MIT",
+    "author": "Yusuke Wada <yusuke@kamawada.com> (https://github.com/yusukebe)",
+    "source": "git+https://github.com/honojs/hono.git"
+  },
+  {
+    "name": "image",
+    "version": "0.25.10",
+    "license": "MIT OR Apache-2.0",
+    "author": "The image-rs Developers",
+    "source": "https://github.com/image-rs/image"
+  },
+  {
+    "name": "immutable",
+    "version": "5.1.4",
+    "license": "MIT",
+    "author": "Lee Byron",
+    "source": "git://github.com/immutable-js/immutable-js.git"
+  },
+  {
+    "name": "is-extglob",
+    "version": "2.1.1",
+    "license": "MIT",
+    "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+    "source": "jonschlinkert/is-extglob"
+  },
+  {
+    "name": "is-glob",
+    "version": "4.0.3",
+    "license": "MIT",
+    "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+    "source": "micromatch/is-glob"
+  },
+  {
+    "name": "is-reference",
+    "version": "3.0.3",
+    "license": "MIT",
+    "author": "Rich Harris",
+    "source": "git+https://github.com/Rich-Harris/is-reference.git"
+  },
+  {
+    "name": "isexe",
+    "version": "3.1.5",
+    "license": "BlueOak-1.0.0",
+    "author": "Isaac Z. Schlueter <i@izs.me> (http://blog.izs.me/)",
+    "source": "https://github.com/isaacs/isexe"
+  },
+  {
+    "name": "kleur",
+    "version": "4.1.5",
+    "license": "MIT",
+    "author": "Luke Edwards",
+    "source": "lukeed/kleur"
+  },
+  {
+    "name": "libloading",
+    "version": "0.9.0",
+    "license": "ISC",
+    "author": "Simonas Kazlauskas <libloading@kazlauskas.me>",
+    "source": "https://github.com/nagisa/rust_libloading/"
+  },
+  {
+    "name": "locate-character",
+    "version": "3.0.0",
+    "license": "MIT",
+    "author": "Rich Harris",
+    "source": "git+https://gitlab.com/Rich-Harris/locate-character.git"
+  },
+  {
+    "name": "magic-string",
+    "version": "0.30.21",
+    "license": "MIT",
+    "author": "Rich Harris",
+    "source": "git+https://github.com/Rich-Harris/magic-string.git"
+  },
+  {
+    "name": "matrixmultiply",
+    "version": "0.3.11",
+    "license": "MIT/Apache-2.0",
+    "author": "bluss, R. Janis Goldschmidt",
+    "source": "https://github.com/bluss/matrixmultiply/"
+  },
+  {
+    "name": "miniz_oxide",
+    "version": "0.8.9",
+    "license": "MIT OR Zlib OR Apache-2.0",
+    "author": "Frommi <daniil.liferenko@gmail.com>, oyvindln <oyvindln@users.noreply.github.com>, Rich Geldreich richgel99@gmail.com",
+    "source": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide"
+  },
+  {
+    "name": "miniz_oxide",
+    "version": "0.9.1",
+    "license": "MIT OR Zlib OR Apache-2.0",
+    "author": "Frommi <daniil.liferenko@gmail.com>, oyvindln <oyvindln@users.noreply.github.com>, Rich Geldreich richgel99@gmail.com",
+    "source": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide"
+  },
+  {
+    "name": "moxcms",
+    "version": "0.8.1",
+    "license": "BSD-3-Clause OR Apache-2.0",
+    "author": "Radzivon Bartoshyk",
+    "source": "https://github.com/awxkee/moxcms.git"
+  },
+  {
+    "name": "ms",
+    "version": "2.1.3",
+    "license": "MIT",
+    "author": "",
+    "source": "vercel/ms"
+  },
+  {
+    "name": "nanoid",
+    "version": "3.3.11",
+    "license": "MIT",
+    "author": "Andrey Sitnik <andrey@sitnik.ru>",
+    "source": "ai/nanoid"
+  },
+  {
+    "name": "ndarray",
+    "version": "0.17.2",
+    "license": "MIT OR Apache-2.0",
+    "author": "Ulrik Sverdrup \"bluss\", Jim Turner",
+    "source": "https://github.com/rust-ndarray/ndarray"
+  },
+  {
+    "name": "node-addon-api",
+    "version": "7.1.1",
+    "license": "MIT",
+    "author": "",
+    "source": "git://github.com/nodejs/node-addon-api.git"
+  },
+  {
+    "name": "normalize.css",
+    "version": "8.0.1",
+    "license": "MIT",
+    "author": "",
+    "source": "necolas/normalize.css"
+  },
+  {
+    "name": "num-complex",
+    "version": "0.4.6",
+    "license": "MIT OR Apache-2.0",
+    "author": "The Rust Project Developers",
+    "source": "https://github.com/rust-num/num-complex"
+  },
+  {
+    "name": "num-integer",
+    "version": "0.1.47",
+    "license": "MIT OR Apache-2.0",
+    "author": "The Rust Project Developers",
+    "source": "https://github.com/rust-num/num-integer"
+  },
+  {
+    "name": "num-traits",
+    "version": "0.2.19",
+    "license": "MIT OR Apache-2.0",
+    "author": "The Rust Project Developers",
+    "source": "https://github.com/rust-num/num-traits"
+  },
+  {
+    "name": "obug",
+    "version": "2.1.1",
+    "license": "MIT",
+    "author": "Kevin Deng <sxzz@sxzz.moe>",
+    "source": "git+https://github.com/sxzz/obug.git"
+  },
+  {
+    "name": "once_cell",
+    "version": "1.21.4",
+    "license": "MIT OR Apache-2.0",
+    "author": "Aleksey Kladov <aleksey.kladov@gmail.com>",
+    "source": "https://github.com/matklad/once_cell"
+  },
+  {
+    "name": "ort",
+    "version": "2.0.0-rc.13",
+    "license": "MIT OR Apache-2.0",
+    "author": "pyke.io <contact@pyke.io>, Nicolas Bigaouette <nbigaouette@gmail.com>",
+    "source": "https://github.com/pykeio/ort"
+  },
+  {
+    "name": "ort-sys",
+    "version": "2.0.0-rc.13",
+    "license": "MIT OR Apache-2.0",
+    "author": "pyke.io <contact@pyke.io>",
+    "source": "https://github.com/pykeio/ort"
+  },
+  {
+    "name": "picocolors",
+    "version": "1.1.1",
+    "license": "ISC",
+    "author": "Alexey Raspopov",
+    "source": "alexeyraspopov/picocolors"
+  },
+  {
+    "name": "picomatch",
+    "version": "4.0.3",
+    "license": "MIT",
+    "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+    "source": "micromatch/picomatch"
+  },
+  {
+    "name": "pin-project-lite",
+    "version": "0.2.17",
+    "license": "Apache-2.0 OR MIT",
+    "author": "",
+    "source": "https://github.com/taiki-e/pin-project-lite"
+  },
+  {
+    "name": "png",
+    "version": "0.18.1",
+    "license": "MIT OR Apache-2.0",
+    "author": "The image-rs Developers",
+    "source": "https://github.com/image-rs/image-png"
+  },
+  {
+    "name": "portable-atomic",
+    "version": "1.15.0",
+    "license": "Apache-2.0 OR MIT",
+    "author": "",
+    "source": "https://github.com/taiki-e/portable-atomic"
+  },
+  {
+    "name": "portable-atomic-util",
+    "version": "0.2.8",
+    "license": "Apache-2.0 OR MIT",
+    "author": "",
+    "source": "https://github.com/taiki-e/portable-atomic-util"
+  },
+  {
+    "name": "postcss",
+    "version": "8.5.6",
+    "license": "MIT",
+    "author": "Andrey Sitnik <andrey@sitnik.ru>",
+    "source": "postcss/postcss"
+  },
+  {
+    "name": "pxfm",
+    "version": "0.1.30",
+    "license": "BSD-3-Clause OR Apache-2.0",
+    "author": "Radzivon Bartoshyk",
+    "source": "https://github.com/awxkee/pxfm"
+  },
+  {
+    "name": "rawpointer",
+    "version": "0.2.1",
+    "license": "MIT/Apache-2.0",
+    "author": "bluss",
+    "source": "https://github.com/bluss/rawpointer/"
+  },
+  {
+    "name": "readdirp",
+    "version": "4.1.2",
+    "license": "MIT",
+    "author": "Thorsten Lorenz <thlorenz@gmx.de> (thlorenz.com)",
+    "source": "git://github.com/paulmillr/readdirp.git"
+  },
+  {
+    "name": "resolve-pkg-maps",
+    "version": "1.0.0",
+    "license": "MIT",
+    "author": "Hiroki Osame",
+    "source": "privatenumber/resolve-pkg-maps"
+  },
+  {
+    "name": "rollup",
+    "version": "4.57.1",
+    "license": "MIT",
+    "author": "Rich Harris",
+    "source": "git+https://github.com/rollup/rollup.git"
+  },
+  {
+    "name": "sass",
+    "version": "1.97.3",
+    "license": "MIT",
+    "author": "Natalie Weizenbaum",
+    "source": "https://github.com/sass/dart-sass"
+  },
+  {
+    "name": "semver",
+    "version": "7.7.4",
+    "license": "ISC",
+    "author": "GitHub Inc.",
+    "source": "git+https://github.com/npm/node-semver.git"
+  },
+  {
+    "name": "shell-quote",
+    "version": "1.8.3",
+    "license": "MIT",
+    "author": "James Halliday",
+    "source": "http://github.com/ljharb/shell-quote.git"
+  },
+  {
+    "name": "simd-adler32",
+    "version": "0.3.10",
+    "license": "MIT",
+    "author": "Marvin Countryman <me@maar.vin>",
+    "source": "https://github.com/mcountryman/simd-adler32"
+  },
+  {
+    "name": "smallvec",
+    "version": "1.16.0",
+    "license": "MIT OR Apache-2.0",
+    "author": "The Servo Project Developers",
+    "source": "https://github.com/servo/rust-smallvec"
+  },
+  {
+    "name": "smart-sort",
+    "version": "0.0.3",
+    "license": "MIT",
+    "author": "",
+    "source": "simongfxu/smart-sort"
+  },
+  {
+    "name": "source-map",
+    "version": "0.6.1",
+    "license": "BSD-3-Clause",
+    "author": "Nick Fitzgerald <nfitzgerald@mozilla.com>",
+    "source": "http://github.com/mozilla/source-map.git"
+  },
+  {
+    "name": "source-map-js",
+    "version": "1.2.1",
+    "license": "BSD-3-Clause",
+    "author": "Valentin 7rulnik Semirulnik <v7rulnik@gmail.com>",
+    "source": "7rulnik/source-map-js"
+  },
+  {
+    "name": "source-map-support",
+    "version": "0.5.21",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/evanw/node-source-map-support"
+  },
+  {
+    "name": "svelte",
+    "version": "5.50.2",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/sveltejs/svelte.git"
+  },
+  {
+    "name": "svelte",
+    "version": "5.53.0",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/sveltejs/svelte.git"
+  },
+  {
+    "name": "tinyglobby",
+    "version": "0.2.15",
+    "license": "MIT",
+    "author": "Superchupu",
+    "source": "git+https://github.com/SuperchupuDev/tinyglobby.git"
+  },
+  {
+    "name": "tracing",
+    "version": "0.1.44",
+    "license": "MIT",
+    "author": "Eliza Weisman <eliza@buoyant.io>, Tokio Contributors <team@tokio.rs>",
+    "source": "https://github.com/tokio-rs/tracing"
+  },
+  {
+    "name": "tracing-core",
+    "version": "0.1.36",
+    "license": "MIT",
+    "author": "Tokio Contributors <team@tokio.rs>",
+    "source": "https://github.com/tokio-rs/tracing"
+  },
+  {
+    "name": "typescript",
+    "version": "5.9.3",
+    "license": "Apache-2.0",
+    "author": "Microsoft Corp.",
+    "source": "https://github.com/microsoft/TypeScript.git"
+  },
+  {
+    "name": "undici-types",
+    "version": "7.18.2",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/nodejs/undici.git"
+  },
+  {
+    "name": "vite",
+    "version": "6.4.1",
+    "license": "MIT",
+    "author": "Evan You",
+    "source": "git+https://github.com/vitejs/vite.git"
+  },
+  {
+    "name": "vite",
+    "version": "7.3.1",
+    "license": "MIT",
+    "author": "Evan You",
+    "source": "git+https://github.com/vitejs/vite.git"
+  },
+  {
+    "name": "vitefu",
+    "version": "1.1.1",
+    "license": "MIT",
+    "author": "",
+    "source": "git+https://github.com/svitejs/vitefu.git"
+  },
+  {
+    "name": "which",
+    "version": "4.0.0",
+    "license": "ISC",
+    "author": "GitHub Inc.",
+    "source": "https://github.com/npm/node-which.git"
+  },
+  {
+    "name": "windows-link",
+    "version": "0.2.1",
+    "license": "MIT OR Apache-2.0",
+    "author": "",
+    "source": "https://github.com/microsoft/windows-rs"
+  },
+  {
+    "name": "zimmerframe",
+    "version": "1.1.4",
+    "license": "MIT",
+    "author": "",
+    "source": "https://github.com/sveltejs/zimmerframe"
+  },
+  {
+    "name": "zlib-rs",
+    "version": "0.6.7",
+    "license": "Zlib",
+    "author": "",
+    "source": "https://github.com/trifectatechfoundation/zlib-rs"
+  },
+  {
+    "name": "zune-core",
+    "version": "0.5.3",
+    "license": "MIT OR Apache-2.0 OR Zlib",
+    "author": "",
+    "source": "https://github.com/etemesi254/zune-image"
+  },
+  {
+    "name": "zune-jpeg",
+    "version": "0.5.15",
+    "license": "MIT OR Apache-2.0 OR Zlib",
+    "author": "caleb <etemesicaleb@gmail.com>",
+    "source": "https://github.com/etemesi254/zune-image/tree/dev/crates/zune-jpeg"
+  }
+]

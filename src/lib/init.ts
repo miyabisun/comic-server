@@ -70,6 +70,12 @@ export function init() {
     console.log('Database initialized')
   }
 
+  const columns = db.all<{ name: string }>(sql`PRAGMA table_info(comics)`)
+  if (!columns.some((column) => column.name === 'remaster_source_id')) {
+    db.run(sql`ALTER TABLE comics ADD COLUMN remaster_source_id INTEGER`)
+  }
+  db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS comics_remaster_source_key ON comics(remaster_source_id)`)
+
   // Migrate non-ISO timestamps to ISO 8601
   // Patterns: integer unix timestamps, "YYYY-MM-DD HH:MM:SS" (missing T separator)
   migrateTimestamps('created_at')

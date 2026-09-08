@@ -56,6 +56,8 @@ comic-server/
 ## Prerequisites
 
 - Bun
+- Rust (for the remaster helper)
+- Python 3.14 and the build-only requirements when exporting models; see the README
 
 ## Setup
 
@@ -96,9 +98,9 @@ The built frontend is served by Hono at `http://localhost:3000`.
 |---|---|
 | `bun run dev` | Start backend + frontend watch build |
 | `bun run build:client` | Build frontend for production |
-| `bun run build` | Alias for `build:client` |
+| `bun run build` | Build client and Rust remaster helper |
 | `bun start` | Start production server |
-| `bun test` | Run tests |
+| `bun run test` | Run Bun and Rust tests |
 
 ## Docker
 

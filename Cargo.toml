@@ -1,0 +1,13 @@
+[package]
+name = "comic-remaster"
+version = "0.1.1"
+edition = "2024"
+license = "CC-BY-NC-4.0"
+
+[[bin]]
+name = "comic-remaster"
+path = "remaster/main.rs"
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
+ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "load-dynamic", "api-27"] }

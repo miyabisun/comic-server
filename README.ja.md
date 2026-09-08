@@ -111,6 +111,17 @@ curl -X POST http://localhost:3000/api/regist \
 | 4 | love (とても好き) |
 | 5 | legend (殿堂入り) |
 
+## リマスター
+
+コミック情報の「リマスターを開始」で、原本を残した「リマスター版」を別作品として作成する。
+MangaJaNai（白黒）とIllustrationJaNai（カラー）をRust製CLIからONNX Runtime CPU版で実行する。
+Docker版には実行ファイル・外部モデル・推論ライブラリを同梱する。
+[セットアップと制限](README.md#remaster-mangajanai)、[品質・性能の検証](docs/remaster-validation.md)を参照。
+
+自作コードは利用者指定の配布方針により[CC BY-NC 4.0](LICENSE)。採用するV1モデルは
+**CC BY-NC-SA 4.0**を保持し、各依存のライセンスとも区別する。
+[第三者の帰属・バージョン・条件](README.md#license-and-third-party-attribution)を正本とする。
+
 ## 詳細ドキュメント
 
 - [Docker Compose](docs/docker-compose.md) — Docker Compose でのデプロイ方法

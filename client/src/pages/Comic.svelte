@@ -2,7 +2,7 @@
 	import { link } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
-	import { updateComic, startUpscale, confirmUpscale, rollbackUpscale, getUpscaleStatus } from '$lib/api.js';
+	import { updateComic, startUpscale, confirmUpscale, rollbackUpscale, getUpscaleStatus, startRemaster, cancelRemaster, getRemasterStatus } from '$lib/api.js';
 	import { addToast } from '$lib/toast.svelte.js';
 	import { levelGe } from '$lib/levels.js';
 	import { createHoldRepeat } from '$lib/hold-repeat.svelte.js';
@@ -15,6 +15,14 @@
 	let tmpComic = $state({});
 	let imgPointer = $state(1);
 	let showInfo = $state(false);
+	let infoDialog = $state(null);
+	$effect(() => {
+		const dialog = infoDialog;
+		if (showInfo && dialog) {
+			dialog.showModal();
+			return () => dialog.close();
+		}
+	});
 
 	const prev = createHoldRepeat(() => { imgPointer = Math.max(imgPointer - 1, 1); }, { interval: 100 });
 	const next = createHoldRepeat(() => { imgPointer = Math.min(imgPointer + 1, comic?.images?.length || 1); });
@@ -163,6 +171,31 @@
 	}
 
 	let upscaleStatus = $state({ status: 'idle' });
+	let remasterStatus = $state({ status: 'loading' });
+	let remasterBusy = $state(false);
+
+	async function refreshRemasterStatus() {
+		if (!comic) return;
+		const cid = comic.id;
+		try {
+			const status = await getRemasterStatus(cid);
+			if (comic?.id === cid) remasterStatus = status;
+		} catch (e) {
+			if (comic?.id === cid) remasterStatus = { status: 'error', error: e.message };
+		}
+	}
+
+	async function handleRemaster(cancel = false) {
+		remasterBusy = true;
+		try {
+			await (cancel ? cancelRemaster(comic.id) : startRemaster(comic.id));
+			await refreshRemasterStatus();
+		} catch (e) {
+			addToast(`リマスター: ${e.message}`);
+		} finally {
+			remasterBusy = false;
+		}
+	}
 
 	async function refreshUpscaleStatus() {
 		if (!comic) return;
@@ -179,8 +212,10 @@
 	$effect(() => {
 		const cid = comic?.id;
 		if (!showInfo || !cid) return;
+		remasterStatus = { status: 'loading' };
 		refreshUpscaleStatus();
-		const timer = setInterval(refreshUpscaleStatus, 5000);
+		refreshRemasterStatus();
+		const timer = setInterval(() => { refreshUpscaleStatus(); refreshRemasterStatus(); }, 2000);
 		return () => clearInterval(timer);
 	});
 
@@ -252,8 +287,8 @@
 		</div>
 
 		{#if showInfo}
-			<div class="modal-overlay" onclick={() => { tmpComic = {}; showInfo = false; }}>
-				<div class="modal" onclick={(e) => e.stopPropagation()}>
+			<dialog class="modal-overlay" bind:this={infoDialog} aria-label="コミック情報" onclose={() => { tmpComic = {}; showInfo = false; }} onclick={(e) => { if (e.target === infoDialog) { tmpComic = {}; showInfo = false; } }}>
+				<div class="modal">
 					<div class="modal-header">
 						<h3>{comic.file}</h3>
 						<button class="modal-close" aria-label="閉じる" onclick={() => { tmpComic = {}; showInfo = false; }}>
@@ -279,6 +314,36 @@
 							</div>
 						{/if}
 					</div>
+					<section class="upscale-section remaster-section" aria-labelledby="remaster-heading">
+						<h4 id="remaster-heading">リマスター</h4>
+						<p>原本を残し、画質を改善した「リマスター版」を別作品として作成します。</p>
+						<div aria-live="polite">
+							{#if remasterStatus.status === 'loading'}
+								<p>状況を確認しています…</p>
+							{:else if remasterStatus.status === 'processing'}
+								<p>処理中: {remasterStatus.processed ?? 0} / {remasterStatus.total || '?'} ページ</p>
+								<button type="button" class="upscale-btn" disabled={remasterBusy} onclick={() => handleRemaster(true)}>リマスターを中止</button>
+							{:else if remasterStatus.status === 'completed'}
+								{#if remasterStatus.outputComicId === comic.id}
+									<p>この作品はリマスター版です。</p>
+								{:else}
+									<a href={link('/comics/' + remasterStatus.outputComicId)}>リマスター版を開く</a>
+								{/if}
+							{:else if remasterStatus.status === 'error'}
+								<p role="alert">状況を取得できませんでした: {remasterStatus.error}</p>
+								<button type="button" class="upscale-btn" onclick={refreshRemasterStatus}>状況を再取得</button>
+							{:else}
+								{#if remasterStatus.status === 'failed'}
+									<p role="alert">{remasterStatus.error === 'Remaster cancelled' ? 'リマスターを中止しました。原本は保持されています。' : `リマスターに失敗しました: ${remasterStatus.error}`}</p>
+								{/if}
+								{#if remasterStatus.available === false}
+									<p>リマスター機能は未設定です。READMEのセットアップ手順を確認してください。</p>
+								{:else}
+									<button type="button" class="upscale-btn" disabled={remasterBusy} onclick={() => handleRemaster()}>リマスターを開始</button>
+								{/if}
+							{/if}
+						</div>
+					</section>
 					<div class="modal-body">
 						<div class="modal-form">
 							<form onsubmit={handleSubmit}>
@@ -336,7 +401,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
+			</dialog>
 		{/if}
 	{/if}
 </main>
@@ -432,6 +497,13 @@ $height: calc(100vh - 22px)
 			background-color: var(--c-scrim-strong)
 
 	.modal-overlay
+		margin: 0
+		padding: 0
+		border: none
+		max-width: none
+		max-height: none
+		&::backdrop
+			background: transparent
 		position: fixed
 		top: 0
 		left: 0
@@ -488,6 +560,17 @@ $height: calc(100vh - 22px)
 			&:hover
 				color: var(--c-text)
 
+		.remaster-section
+			h4, p
+				margin: 0 0 var(--sp-2)
+				font-size: var(--fs-sm)
+				overflow-wrap: anywhere
+			[role="alert"]
+				color: var(--c-danger)
+			button:disabled
+				opacity: 0.6
+				cursor: wait
+
 		.upscale-section
 			margin: 8px 0 12px
 			padding: 8px 12px
@@ -496,6 +579,7 @@ $height: calc(100vh - 22px)
 			border-radius: var(--radius-sm)
 
 			.upscale-btn
+				min-height: 36px
 				font-size: var(--fs-sm)
 				padding: 4px 12px
 				border: 1px solid var(--c-border)

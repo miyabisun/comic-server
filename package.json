@@ -2,12 +2,13 @@
   "name": "comic-server",
   "version": "0.1.1",
   "type": "module",
+  "license": "CC-BY-NC-4.0",
   "scripts": {
     "dev": "cd client && bunx vite build --watch & bun --env-file=.env src/index.ts",
     "build:client": "cd client && bun install && bun run build",
-    "build": "bun run build:client",
+    "build": "bun run build:client && cargo build --release --locked",
     "start": "bun --env-file=.env src/index.ts",
-    "test": "bun test"
+    "test": "bun test && cargo test --locked"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

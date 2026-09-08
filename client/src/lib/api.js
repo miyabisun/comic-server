@@ -19,9 +19,8 @@ export async function deleteComic(id) {
 	return r.json();
 }
 
-async function upscalePost(id, action = '') {
-	const suffix = action ? `/${action}` : '';
-	const r = await fetch(`${config.path.api}/comics/${id}/upscale${suffix}`, {
+async function comicPost(id, action) {
+	const r = await fetch(`${config.path.api}/comics/${id}/${action}`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' }
 	});
@@ -30,12 +29,17 @@ async function upscalePost(id, action = '') {
 	return data;
 }
 
-export const startUpscale = (id) => upscalePost(id);
-export const confirmUpscale = (id) => upscalePost(id, 'confirm');
-export const rollbackUpscale = (id) => upscalePost(id, 'rollback');
+export const startUpscale = (id) => comicPost(id, 'upscale');
+export const confirmUpscale = (id) => comicPost(id, 'upscale/confirm');
+export const rollbackUpscale = (id) => comicPost(id, 'upscale/rollback');
 
-export async function getUpscaleStatus(id) {
-	const r = await fetch(`${config.path.api}/comics/${id}/upscale/status`);
+async function jobStatus(id, action) {
+	const r = await fetch(`${config.path.api}/comics/${id}/${action}/status`);
 	if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
 	return r.json();
 }
+
+export const getUpscaleStatus = (id) => jobStatus(id, 'upscale');
+export const getRemasterStatus = (id) => jobStatus(id, 'remaster');
+export const startRemaster = (id) => comicPost(id, 'remaster');
+export const cancelRemaster = (id) => comicPost(id, 'remaster/cancel');

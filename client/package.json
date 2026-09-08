@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "license": "CC-BY-NC-4.0",
   "scripts": {
     "dev": "vite --port 5173 --host",
     "build": "vite build",

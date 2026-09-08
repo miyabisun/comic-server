@@ -6,3 +6,6 @@ export const backupPath = path.join(comicPath, 'backup')
 export const upscaleScriptPath =
   process.env.UPSCALE_SCRIPT_PATH ||
   path.resolve(import.meta.dir, '../../scripts/upscale-images.sh')
+
+export const remasterBinaryPath = process.env.REMASTER_BIN || path.resolve(import.meta.dir, '../../target/release/comic-remaster')
+export const remasterModelDir = process.env.REMASTER_MODEL_DIR || path.resolve(import.meta.dir, '../../remaster/models')

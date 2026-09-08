@@ -11,6 +11,8 @@ import brands from './routes/brands.js'
 import regist from './routes/regist.js'
 import duplicates from './routes/duplicates.js'
 import upscale from './routes/upscale.js'
+import remaster from './routes/remaster.js'
+import fs from 'node:fs/promises'
 import { comicPath } from './lib/config.js'
 import { getIndexHtml as realGetIndexHtml } from './lib/spa.js'
 
@@ -41,12 +43,22 @@ export function createApp(
   sub.route('/', regist)
   sub.route('/', duplicates)
   sub.route('/', upscale)
+  sub.route('/', remaster)
 
   // Image serving: /images/:bookshelf/:file/:path
   sub.get('/images/*', async (c) => {
     const reqPath = c.req.path.replace(/^.*\/images\//, '')
-    const filePath = path.resolve(comicPath, decodeURIComponent(reqPath))
-    const resolvedBase = path.resolve(comicPath)
+    let filePath: string
+    try {
+      filePath = await fs.realpath(path.resolve(comicPath, decodeURIComponent(reqPath)))
+    } catch (error) {
+      return c.json({ error: error instanceof URIError ? 'Invalid path' : 'Not found' }, error instanceof URIError ? 400 : 404)
+    }
+    const resolvedBase = await fs.realpath(comicPath)
+    const privateRoot = path.join(resolvedBase, '.remaster')
+    if (filePath === privateRoot || filePath.startsWith(privateRoot + path.sep)) {
+      return c.json({ error: 'Forbidden' }, 403)
+    }
 
     if (!filePath.startsWith(resolvedBase + path.sep)) {
       return c.json({ error: 'Forbidden' }, 403)

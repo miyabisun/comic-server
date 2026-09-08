@@ -9,4 +9,6 @@ import path from 'path'
 const comicDir = fs.mkdtempSync(path.join(os.tmpdir(), 'comic-server-test-'))
 process.env.COMIC_PATH = comicDir
 process.env.DATABASE_PATH = path.join(comicDir, 'comic.db')
+process.env.REMASTER_BIN = path.join(comicDir, 'remaster-stub')
+process.env.REMASTER_MODEL_DIR = path.join(comicDir, 'models')
 process.on('exit', () => fs.rmSync(comicDir, { recursive: true, force: true }))

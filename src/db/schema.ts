@@ -9,6 +9,7 @@ export const comics = sqliteTable('comics', {
   brand: text('brand'),
   original: text('original'),
   custom_path: text('custom_path'),
+  remaster_source_id: integer('remaster_source_id').unique(),
   created_at: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   deleted_at: text('deleted_at'),
 })

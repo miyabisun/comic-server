@@ -178,3 +178,20 @@ Serves comic image files directly from `COMIC_PATH`. Responses include `Cache-Co
 | `custom_path` | String? | Regex to filter images |
 | `created_at` | DateTime | Registration date |
 | `deleted_at` | DateTime? | Soft-delete timestamp |
+
+## Remaster
+
+These routes are independent of upscale and inherit `BASE_PATH`.
+
+- `POST /api/comics/:id/remaster`: start (202), or return the existing result (200 with
+  `outputComicId`). A running job, existing destination, or already-remastered source
+  returns 409. Missing setup returns 503. The original is retained.
+- `GET /api/comics/:id/remaster/status`: `status` is `idle`, `processing`, `failed`, or
+  `completed`. Processing includes `processed` / `total`; failure includes `error`;
+  completion includes `outputComicId`. Idle includes `available`.
+- `POST /api/comics/:id/remaster/cancel`: request cancellation (202); no matching
+  running job returns 409. Poll status until cancellation finishes.
+
+Only a completed new comic is registered on `unread`. Its metadata contains the
+read-only `remaster_source_id`, which keeps retries idempotent across renames/restarts.
+See the [README](../README.md#remaster-mangajanai) for models, limits and recovery.
