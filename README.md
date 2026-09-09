@@ -72,6 +72,8 @@ defaults as the server. Build and test environment settings are not server confi
 
 ## Folder Structure
 
+The `/images/*` endpoint serves PNG/JPEG files only, checking the resolved file extension and signature. Files outside `COMIC_PATH`, private `.remaster` staging, databases and other non-image files are refused, including symlink aliases. Image bytes are streamed without re-encoding.
+
 Place comic folders (containing PNG/JPEG images) inside bookshelf directories under `COMIC_PATH`:
 
 ```

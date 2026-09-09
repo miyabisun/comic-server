@@ -69,9 +69,18 @@ export function createApp(
       return c.json({ error: 'Not found' }, 404)
     }
 
-    const mimeType = getMimeType(filePath) || 'application/octet-stream'
+    const mimeType = getMimeType(filePath.toLowerCase())
+    if (mimeType !== 'image/png' && mimeType !== 'image/jpeg') {
+      return c.json({ error: 'Forbidden' }, 403)
+    }
+    const signature = Buffer.from(await file.slice(0, 8).arrayBuffer())
+    const matches = mimeType === 'image/png'
+      ? signature.equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+      : signature.subarray(0, 3).equals(Buffer.from([255, 216, 255]))
+    if (!matches) return c.json({ error: 'Forbidden' }, 403)
 
     c.header('Content-Type', mimeType)
+    c.header('X-Content-Type-Options', 'nosniff')
     c.header('Content-Length', file.size.toString())
     c.header('Cache-Control', 'public, max-age=86400')
 
