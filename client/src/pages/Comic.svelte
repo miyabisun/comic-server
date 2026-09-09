@@ -1,11 +1,14 @@
 <script>
+	import { onDestroy, untrack } from 'svelte';
+	import ComicDialog from '$lib/components/ComicDialog.svelte';
+	import { commandKey, createDeleteSequence, ratingForKey, readerMove } from '$lib/keyboard.js';
 	import { brandPath } from '$lib/brand.js';
-	import { link } from '$lib/router.svelte.js';
+	import { link, navigate } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
-	import { updateComic, startUpscale, confirmUpscale, rollbackUpscale, getUpscaleStatus, startRemaster, cancelRemaster, getRemasterStatus } from '$lib/api.js';
+	import { updateComic, deleteComic, startUpscale, confirmUpscale, rollbackUpscale, getUpscaleStatus, startRemaster, cancelRemaster, getRemasterStatus } from '$lib/api.js';
 	import { addToast } from '$lib/toast.svelte.js';
-	import { levelGe } from '$lib/levels.js';
+	import { levelGe, ratingLevels } from '$lib/levels.js';
 	import { createHoldRepeat } from '$lib/hold-repeat.svelte.js';
 	import { reloadOnFocus } from '$lib/reload-on-focus.svelte.js';
 	import Icon from '$lib/components/Icon.svelte';
@@ -16,6 +19,14 @@
 	let tmpComic = $state({});
 	let imgPointer = $state(1);
 	let showInfo = $state(false);
+	let showHelp = $state(false);
+	let pendingDelete = $state(null);
+	let busy = $state(false);
+	let operationError = $state('');
+	let active = true;
+	let loadRequest = 0;
+	const sequence = createDeleteSequence();
+	onDestroy(() => { active = false; });
 	let infoDialog = $state(null);
 	$effect(() => {
 		const dialog = infoDialog;
@@ -30,76 +41,127 @@
 	const back = createHoldRepeat(() => { imgPointer = Math.max(imgPointer - 10, 1); });
 	const skip = createHoldRepeat(() => { imgPointer = Math.min(imgPointer + 10, comic?.images?.length || 1); });
 
+	function stopPages() {
+		prev.pressed = next.pressed = back.pressed = skip.pressed = false;
+	}
+	function pageController(delta) {
+		return ({ '-1': prev, '1': next, '-10': back, '10': skip })[delta];
+	}
+	$effect(() => { if (showInfo || showHelp || pendingDelete || busy) stopPages(); });
+
 	async function load(_id) {
-		comic = await fetcher(`${config.path.api}/comics/${_id}`);
+		const request = ++loadRequest;
+		try {
+			const result = await fetcher(`${config.path.api}/comics/${_id}`);
+			if (active && request === loadRequest && _id === id) { comic = result; return true; }
+		} catch (e) {
+			if (active && request === loadRequest) operationError = `コミックを取得できませんでした: ${e.message}`;
+		}
+		return false;
 	}
 
 	$effect(() => {
-		comic = null;
-		imgPointer = 1;
-		load(id);
+		const current = id;
+		untrack(() => {
+			comic = null;
+			tmpComic = {};
+			imgPointer = 1;
+			showInfo = showHelp = false;
+			pendingDelete = null;
+			operationError = '';
+			sequence.reset();
+			stopPages();
+			load(current);
+		});
 	});
 
-	$effect(() => {
-		document.title = comic?.file || 'loading...';
-	});
-
-	reloadOnFocus(() => load(id));
+	$effect(() => { document.title = comic?.file || 'loading...'; });
+	reloadOnFocus(() => { if (!busy && !pendingDelete) load(id); });
 
 	function handleKeyDown(e) {
-		if (!comic || showInfo) return;
-		switch (e.key) {
-			case 'ArrowLeft':
-				imgPointer = Math.max(imgPointer - 1, 1);
-				prev.pressed = true;
-				break;
-			case 'ArrowRight':
-				imgPointer = Math.min(imgPointer + 1, comic.images.length);
-				next.pressed = true;
-				break;
-			case 'ArrowUp':
-				e.preventDefault();
-				imgPointer = Math.max(imgPointer - 10, 1);
-				back.pressed = true;
-				break;
-			case 'ArrowDown':
-				e.preventDefault();
-				imgPointer = Math.min(imgPointer + 10, comic.images.length);
-				skip.pressed = true;
-				break;
-			case 'Backspace':
-				if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-					e.preventDefault();
-					history.back();
-				}
-				break;
+		let key = commandKey(e);
+		if (showInfo || showHelp || pendingDelete || busy || document.querySelector('dialog[open]')) key = null;
+		const deleting = sequence.press(key, comic?.id, e.repeat);
+		if (!key) { stopPages(); return; }
+		if (key === '?' && !e.repeat) { e.preventDefault(); showHelp = true; return; }
+		if (!comic) return;
+		const delta = readerMove(key);
+		if (delta != null) {
+			e.preventDefault();
+			const controller = pageController(delta);
+			if (!e.repeat && !controller.pressed) {
+				imgPointer = Math.max(1, Math.min(comic.images.length || 1, imgPointer + delta));
+				controller.pressed = true;
+			}
+			return;
 		}
+		if (e.repeat) {
+			if (ratingForKey(key) || ['d', 'Enter', ' '].includes(key)) e.preventDefault();
+			return;
+		}
+		if (ratingForKey(key)) { e.preventDefault(); changeBookshelf(ratingForKey(key)); }
+		else if (key === 'i') { e.preventDefault(); showInfo = true; }
+		else if (key === 'b') {
+			e.preventDefault();
+			const path = brandPath(comic.brand, 'exact');
+			if (path) navigate(path); else addToast('ブランドが未設定です');
+		} else if (key === 'd') {
+			e.preventDefault();
+			if (deleting && !comic.deleted_at) {
+				const { id, title, file, brand, bookshelf } = comic;
+				operationError = '';
+				pendingDelete = { id, title, file, brand, bookshelf };
+			}
+		} else if (key === 'Backspace') { e.preventDefault(); history.back(); }
 	}
 
 	function handleKeyUp(e) {
-		if (!comic) return;
-		switch (e.key) {
-			case 'ArrowLeft': prev.pressed = false; break;
-			case 'ArrowRight': next.pressed = false; break;
-			case 'ArrowUp': back.pressed = false; break;
-			case 'ArrowDown': skip.pressed = false; break;
-		}
+		const delta = readerMove(e.key);
+		if (delta != null) pageController(delta).pressed = false;
 	}
 
 	async function changeBookshelf(n) {
-		if (comic.bookshelf === n) return;
-		await updateComic(comic.id, { bookshelf: n });
-		addToast('Updated');
-		load(id);
+		if (busy || !comic || comic.deleted_at || comic.bookshelf === n) return;
+		busy = true;
+		operationError = '';
+		try {
+			await updateComic(comic.id, { bookshelf: n });
+			if (await load(id)) addToast('Updated');
+		} catch (e) { operationError = `評価を変更できませんでした: ${e.message}`; }
+		finally { busy = false; }
+	}
+
+	async function confirmDelete() {
+		if (busy || !pendingDelete) return;
+		const target = pendingDelete;
+		busy = true;
+		operationError = '';
+		try {
+			await deleteComic(target.id);
+			if (active && id === String(target.id)) {
+				navigate(brandPath(target.brand, 'exact') ?? '/bookshelves/' + encodeURIComponent(target.bookshelf));
+			}
+		} catch (e) { operationError = `削除できませんでした: ${e.message}`; }
+		finally { busy = false; }
+	}
+
+	function closeCommandDialog() {
+		if (busy) return;
+		pendingDelete = null;
+		showHelp = false;
+		sequence.reset();
 	}
 
 	async function handleSubmit(e) {
 		e.preventDefault();
-		if (Object.keys(tmpComic).length === 0) return;
-		await updateComic(comic.id, tmpComic);
-		addToast('Updated');
-		tmpComic = {};
-		load(id);
+		if (busy || Object.keys(tmpComic).length === 0) return;
+		busy = true;
+		operationError = '';
+		try {
+			await updateComic(comic.id, tmpComic);
+			if (await load(id)) { addToast('Updated'); tmpComic = {}; }
+		} catch (e) { operationError = `保存できませんでした: ${e.message}`; }
+		finally { busy = false; }
 	}
 
 	async function reParse() {
@@ -253,11 +315,12 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
+<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} onblur={() => { stopPages(); sequence.reset(); }} onfocusin={() => sequence.reset()} />
 
 <main id="comic">
+	{#if operationError && !showInfo && !pendingDelete}<p class="operation-error" role="alert">{operationError}</p>{/if}
 	{#if !comic}
-		loading...
+		{#if !operationError}loading...{/if}
 	{:else}
 		<div class="canvas">
 			<ul class="images" style="transform: translateX(-{(imgPointer - 1) * 100}vw)">
@@ -274,21 +337,20 @@
 			<div class="page">{imgPointer} / {comic.images.length}</div>
 			<div class="review">
 				<ul>
-					{#each ['hold', 'like', 'favorite', 'love', 'legend'] as n}
-						<li
-							class:up={levelGe(comic.bookshelf, n)}
-							onclick={() => changeBookshelf(n)}
-						>★</li>
+					{#each ratingLevels as n}
+						<li><button type="button" aria-label={`${n}に評価`} aria-pressed={comic.bookshelf === n} disabled={busy || comic.deleted_at != null}
+							class:up={levelGe(comic.bookshelf, n)} onclick={() => changeBookshelf(n)}>★</button></li>
 					{/each}
 				</ul>
 			</div>
+			<button class="info-button help-button" aria-label="閲覧のショートカット" onclick={() => { sequence.reset(); showHelp = true; }}>?</button>
 			<button class="info-button" aria-label="情報を表示" onclick={() => { showInfo = true; }}>
 				<Icon name="info" />
 			</button>
 		</div>
 
 		{#if showInfo}
-			<dialog class="modal-overlay" bind:this={infoDialog} aria-label="コミック情報" onclose={() => { tmpComic = {}; showInfo = false; }} onclick={(e) => { if (e.target === infoDialog) { tmpComic = {}; showInfo = false; } }}>
+			<dialog class="modal-overlay" bind:this={infoDialog} aria-label="コミック情報" oncancel={(e) => { e.preventDefault(); tmpComic = {}; showInfo = false; }} onclick={(e) => { if (e.target === infoDialog) { tmpComic = {}; showInfo = false; } }}>
 				<div class="modal">
 					<div class="modal-header">
 						<h3>{comic.file}</h3>
@@ -345,6 +407,7 @@
 							{/if}
 						</div>
 					</section>
+					{#if operationError}<p role="alert">{operationError}</p>{/if}
 					<div class="modal-body">
 						<div class="modal-form">
 							<form onsubmit={handleSubmit}>
@@ -387,7 +450,7 @@
 										</div>
 									{/if}
 								</div>
-								<input type="submit" value="update" />
+								<input type="submit" value="update" disabled={busy} />
 							</form>
 						</div>
 						<div class="modal-files">
@@ -396,7 +459,7 @@
 								{#each comic['origin-images'] || [] as img, i}
 									{@const excluded = customPathRegex ? !customPathRegex.test(img) : false}
 									{@const clickable = !excluded && imagesSet.has(img)}
-									<li class:excluded class:clickable onclick={() => clickable && jumpToImage(img)}><span>{img}</span></li>
+									<li class:excluded><button type="button" disabled={!clickable} aria-current={img === comic.images[imgPointer - 1] ? 'page' : undefined} onclick={() => jumpToImage(img)}>{img}</button></li>
 								{/each}
 							</ol>
 						</div>
@@ -406,6 +469,9 @@
 		{/if}
 	{/if}
 </main>
+
+{#if showHelp}<ComicDialog title="閲覧のショートカット" help="reader" onclose={closeCommandDialog} />{/if}
+{#if pendingDelete}<ComicDialog title="コミックを削除" message={`「${pendingDelete.title || pendingDelete.file}」を削除しますか？`} error={operationError} {busy} onclose={closeCommandDialog} onconfirm={confirmDelete} />{/if}
 
 <style lang="sass">
 $height: calc(100vh - 22px)
@@ -468,7 +534,15 @@ $height: calc(100vh - 22px)
 			padding: 0
 			list-style: none
 
-			li
+			button
+				min-width: 36px
+				min-height: 36px
+				padding: 0
+				border: 0
+				background: transparent
+				color: inherit
+				font: inherit
+				cursor: pointer
 				&.up
 					color: var(--c-star-on)
 					cursor: pointer
@@ -496,6 +570,20 @@ $height: calc(100vh - 22px)
 
 		&:hover
 			background-color: var(--c-scrim-strong)
+
+	.help-button
+		left: 52px
+
+	.operation-error
+		position: fixed
+		top: 72px
+		left: var(--sp-2)
+		z-index: 20
+		max-width: 90vw
+		padding: var(--sp-2)
+		background: var(--c-scrim)
+		color: var(--c-on-scrim)
+		overflow-wrap: anywhere
 
 	.modal-overlay
 		margin: 0
@@ -762,14 +850,22 @@ $height: calc(100vh - 22px)
 						flex-shrink: 0
 						user-select: none
 
-					&.clickable
+					button
+						min-width: 0
+						min-height: 24px
+						padding: 0
+						border: 0
+						background: transparent
+						color: inherit
+						font: inherit
+						text-align: left
 						cursor: pointer
 
 					&.excluded
 						color: var(--c-danger)
 						opacity: 0.6
 
-						> span
+						> button
 							text-decoration: line-through
 
 						&::before

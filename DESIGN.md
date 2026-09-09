@@ -105,7 +105,7 @@ Domain components on top of the Sumi recipes:
 - **ReviewStars:** ★ glyphs are **data visualization, not chrome** — the
   template's emoji/text-glyph ban does not apply to them. Lit = star-on,
   unlit = muted; level order comes from `lib/levels.js`. Tapping a star
-  moves the comic to that shelf — non-destructive, so no confirmation.
+  moves that one comic directly. Bulk classification requires an explicit confirmation.
 - **Dense-table row controls (Bookshelf / Brand tables):** inside these
   two tables — and only there — the template's 36px icon-button recipe
   is relaxed to a **24×24px hit area** (the floor; never smaller) so
@@ -145,10 +145,9 @@ Domain components on top of the Sumi recipes:
 - Don't add a per-level color, upscale-state green, or any new hue
   without declaring it here first as a Washi/Sumi pair (Washi as a
   darkness ramp).
-- Do keep destructive actions (single delete, delete-all) behind a
-  two-step inline confirm (quiet trigger → danger-filled confirm +
-  cancel, in place). Shelf moves via stars stay one-tap: they are cheap
-  and reversible.
+- Do keep deletions behind a two-step confirmation with cancellation as the
+  default. Individual shelf moves are direct; bulk classification requires an
+  explicit scope/count confirmation because it determines future reading.
 - Do keep the reader canvas checkerboard light in both themes — it is a
   proofing surface, not chrome.
 - Don't let modal or overlay chrome compete with the page image: reader
@@ -180,5 +179,48 @@ entire saved brand name; empty brand links are unavailable.
 Show the selected mode and the number of non-deleted results targeted by bulk
 rating/deletion beside the controls. Bulk controls operate on those displayed IDs;
 loading, failed or stale results cannot become an action target. Reset deletion
-confirmation when the search changes. Keep inline delete confirmation and native
-keyboard-accessible rating buttons, using the existing dense-table tokens.
+confirmation when the search changes. Use the shared deletion confirmation and
+native keyboard-accessible rating buttons with the dense-table tokens.
+
+## Keyboard selection and reading
+
+The 2026-09-09 user workflow owns these interactions. Stars classify future reading;
+bulk classification is consequential and requires a count-and-scope confirmation.
+Individual rating remains a direct action. Bulk rating/deletion is available through
+its explicit controls only; individual keyboard commands never invoke it.
+
+Bookshelf and brand pages share an ID-based virtual cursor. The first row is the
+initial target. Sorting and refresh retain that ID. After a successful rating removes
+it, select the row now at its former index, or the previous row at the end. Empty
+lists have no target. A failed update keeps the target; pending updates block further
+commands. Save cursor, sorting and list scroll in the browser history entry so returning
+from reading restores them. Cursor movement scrolls only as far as needed and does
+not fetch comic details. The table remains a dense table at every width, with a
+scrolling container and a visible active row. DOM focus within a row synchronizes the
+cursor; the table exposes its active row to assistive technology. Only the active row's
+controls enter the normal Tab sequence, alongside table-level controls.
+
+List keys: j/k move, Enter/Space open, 1–5 classify hold/like/favorite/love/legend,
+dd requests deletion of that one comic, b opens its exact brand, and ? opens help.
+Reader keys: h/l and left/right move one page, k/j and up/down move ten, 1–5 classify,
+i opens the existing metadata dialog, dd requests deletion, b opens its exact brand,
+and ? opens help. Keep the existing arrow-key hold behavior. No list i, gg/G, counts,
+or undo commands are introduced.
+
+Deletion uses a native dialog naming the frozen target, with cancellation focused by
+default. dd requires two non-repeat d presses within 500ms; another key, focus change,
+or navigation clears it. Only a subsequent non-repeat y confirms an individual delete;
+n/N/Esc/Enter cancel. A failed delete keeps the same target and displays its error.
+Click/tap deletion retains its two-step operation through the same dialog. Bulk dialogs
+name their captured scope/count and require their explicit confirm control; y is not
+a bulk shortcut. The confirmation dialog is shared by pointer and keyboard entry paths.
+
+After reader deletion succeeds, navigate to the captured brand's exact search. If the
+brand is empty, return to the comic's pre-delete bookshelf. Empty-brand b does not
+navigate; explain that no brand is set. An empty result stays an empty list. Input,
+select, contenteditable, IME, Ctrl/Alt/Meta and open dialogs suppress normal commands;
+key repeat cannot classify or delete another comic. Help closes with ?/Esc or its
+close button. Metadata editing keeps native form controls; file-preview buttons work
+with Enter/Space and never enable reader commands inside the dialog. File-preview
+buttons retain their terminal-like density with a 24px minimum target; this is a
+reader-modal exception to the general 36px button recipe.

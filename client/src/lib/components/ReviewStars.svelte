@@ -1,15 +1,13 @@
 <script>
-	import { levelGe } from '$lib/levels.js';
+	import { levelGe, ratingLevels } from '$lib/levels.js';
 
-	let { bookshelf, onchange } = $props();
+	let { bookshelf, onchange, tabindex = 0, disabled = false } = $props();
 </script>
 
 <ul>
-	{#each ['hold', 'like', 'favorite', 'love', 'legend'] as name}
-		<li
-			class:up={levelGe(bookshelf, name)}
-			onclick={() => onchange(name)}
-		>★</li>
+	{#each ratingLevels as name}
+		<li><button type="button" {tabindex} {disabled} aria-label={`${name}に評価`} aria-pressed={bookshelf === name}
+			class:up={levelGe(bookshelf, name)} onclick={() => onchange(name)}>★</button></li>
 	{/each}
 </ul>
 
@@ -20,7 +18,14 @@ ul
 	padding: 0
 	list-style: none
 
-	li
+	button
+		display: block
+		width: 24px
+		height: 24px
+		padding: 0
+		border: none
+		background: transparent
+		font: inherit
 		cursor: pointer
 		color: var(--c-text-muted)
 		&.up
