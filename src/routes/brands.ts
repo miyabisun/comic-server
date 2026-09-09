@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { desc, like, or } from 'drizzle-orm'
+import { desc, eq, like, or } from 'drizzle-orm'
 import { db } from '../db/index.js'
 import { comics } from '../db/schema.js'
 
@@ -12,10 +12,16 @@ const app = new Hono()
 
 app.get('/api/brands/:name', (c) => {
   const { name } = c.req.param()
-  const uniqueNames = expandBrandName(name)
+  const match = c.req.query('match') ?? 'fuzzy'
+  if (!name.trim() || !['fuzzy', 'exact'].includes(match)) {
+    return c.json({ error: 'A brand name and fuzzy or exact match mode are required' }, 400)
+  }
+  const condition = match === 'exact'
+    ? eq(comics.brand, name)
+    : or(...expandBrandName(name).map((n) => like(comics.brand, `%${n}%`)))
 
   const results = db.select().from(comics)
-    .where(or(...uniqueNames.map((n) => like(comics.brand, `%${n}%`))))
+    .where(condition)
     .orderBy(desc(comics.created_at))
     .all()
 

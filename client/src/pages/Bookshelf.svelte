@@ -1,4 +1,5 @@
 <script>
+	import { brandPath } from '$lib/brand.js';
 	import { format, parseISO } from 'date-fns';
 	import { link, navigate } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
@@ -128,8 +129,8 @@
 						{@const isDeleted = comic.deleted_at != null}
 						<tr class:deleted={isDeleted}>
 							<td class="brand">
-								{#if comic.brand}
-									<a href="{link('/brand/' + comic.brand)}">{comic.brand}</a>
+								{#if brandPath(comic.brand)}
+									<a href="{link(brandPath(comic.brand))}">{comic.brand}</a>
 								{/if}
 							</td>
 							<td class="title">

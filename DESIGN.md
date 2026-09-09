@@ -169,3 +169,16 @@ Reuse the upscale section's neutral surface and default button recipe. Wrap long
 messages on narrow screens, and keep controls keyboard operable in both OS themes.
 The reader remains usable while inference runs. A missing installation is described
 as unavailable, with setup details in the documentation.
+
+## Brand search
+
+Brand pages keep the existing fuzzy search as the default for legacy URLs and
+provide a native, labelled fuzzy/exact selector. The URL owns the selected mode;
+reload, direct links and history navigation restore it. Exact matching uses the
+entire saved brand name; empty brand links are unavailable.
+
+Show the selected mode and the number of non-deleted results targeted by bulk
+rating/deletion beside the controls. Bulk controls operate on those displayed IDs;
+loading, failed or stale results cannot become an action target. Reset deletion
+confirmation when the search changes. Keep inline delete confirmation and native
+keyboard-accessible rating buttons, using the existing dense-table tokens.

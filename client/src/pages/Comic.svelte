@@ -1,4 +1,5 @@
 <script>
+	import { brandPath } from '$lib/brand.js';
 	import { link } from '$lib/router.svelte.js';
 	import fetcher from '$lib/fetcher.js';
 	import config from '$lib/config.js';
@@ -354,8 +355,8 @@
 								{#each ['brand', 'genre', 'title', 'original', 'file'] as n}
 									<label>
 										<span>
-											{#if n === 'brand'}
-												<a href="{link('/brand/' + getField('brand'))}">{n}</a>
+											{#if n === 'brand' && brandPath(getField('brand'))}
+												<a href="{link(brandPath(getField('brand')))}">{n}</a>
 											{:else}
 												{n}
 											{/if}

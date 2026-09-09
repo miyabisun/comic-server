@@ -124,7 +124,15 @@ List all comics in a bookshelf, ordered by creation date (newest first).
 
 ### `GET /api/brands/:name`
 
-Search comics by brand name. Splits the name by delimiters (`()、`) and searches for partial matches.
+Search comics by brand name. URL-encode the entire name as one path segment.
+
+- `?match=fuzzy` (default when omitted): preserves the original delimiter (`()、`) expansion and partial `LIKE` matching.
+- `?match=exact`: parameterized equality against the full saved brand. No splitting, case/notation expansion or wildcard interpretation (`%` and `_` are literal).
+- Blank names and unknown modes return `400`.
+
+The UI uses `/brand/:name?match=fuzzy|exact` and restores the mode from the URL.
+Bulk rating/deletion targets only the non-deleted IDs in the displayed result;
+the UI shows this count and sends each ID to the existing comic update/delete API.
 
 **Response**: `Comic[]`
 

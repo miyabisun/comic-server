@@ -41,6 +41,7 @@ function getPathFromURL() {
 
 function syncRoute() {
 	const result = matchRoute(getPathFromURL());
+	if (result.index === 2) result.params.match = new URLSearchParams(window.location.search).get('match') ?? 'fuzzy';
 	_routeIndex = result.index;
 	_params = result.params;
 }
