@@ -22,7 +22,6 @@
 	let error = $state('');
 	let pending = $state(null);
 	let help = $state(false);
-	let viewport = $state(null);
 	let table = $state(null);
 	let request = 0;
 	let entryPath = '';
@@ -36,7 +35,7 @@
 	function savePosition() {
 		if (!comics || loading || entryPath !== location.pathname + location.search) return;
 		history.replaceState({ ...history.state, comicCursor: {
-			url, id: cursor, index: sorted.findIndex((comic) => comic.id === cursor), scrollTop: viewport?.scrollTop ?? 0, sortKey
+			url, id: cursor, index: sorted.findIndex((comic) => comic.id === cursor), scrollY: window.scrollY, sortKey
 		} }, '');
 	}
 
@@ -50,7 +49,7 @@
 	async function load(endpoint, reset = false, excludedId = null) {
 		const current = ++request;
 		const saved = reset ? (history.state?.comicCursor?.url === endpoint ? history.state.comicCursor : {}) : {
-			id: cursor, index: sorted.findIndex((comic) => comic.id === cursor), scrollTop: viewport?.scrollTop ?? 0, sortKey
+			id: cursor, index: sorted.findIndex((comic) => comic.id === cursor), scrollY: window.scrollY, sortKey
 		};
 		if (reset) { entryPath = location.pathname + location.search; comics = null; pending = null; help = false; sortKey = saved.sortKey ?? null; sequence.reset(); }
 		loading = true;
@@ -64,7 +63,9 @@
 			if (current !== request) return false;
 			cursor = reconcileCursor(sorted.filter((comic) => comic.id !== excludedId), saved.id, saved.index ?? 0);
 			await tick();
-			if (viewport) viewport.scrollTop = saved.scrollTop ?? 0;
+			window.scrollTo({ top: saved.scrollY ?? 0, behavior: 'instant' });
+			// Old entries stored a table offset; retain their ID and reveal it instead.
+			if (saved.scrollY == null && saved.id != null) await reveal(false);
 			if (document.activeElement === document.body || document.activeElement?.closest('header')) table?.focus({ preventScroll: true });
 			return true;
 		} catch (e) {
@@ -188,20 +189,19 @@
 	}
 </script>
 
-<svelte:window onkeydown={keydown} onblur={() => sequence.reset()} />
+<svelte:window onkeydown={keydown} onblur={() => sequence.reset()} onscroll={savePosition} onpagehide={savePosition} />
 
 <main id="bookshelf">
-	<h2>{title}</h2>
-	{@render children?.()}
 	<div class="list-tools">
-		<span id="cursor-status" aria-live="polite">{selected ? `操作対象: ${selected.title || selected.file}${selected.deleted_at ? '（削除済み）' : ''}` : '操作対象なし'}</span>
+		<h2>{title}</h2>
 		<button type="button" onclick={() => { sequence.reset(); help = true; }}>操作一覧 (?)</button>
+		{@render children?.()}
 	</div>
+	<span id="cursor-status" class="sr-only" aria-live="polite">{selected ? `操作対象: ${selected.title || selected.file}${selected.deleted_at ? '（削除済み）' : ''}` : '操作対象なし'}</span>
 	{#if error && !pending}<p role="alert">{error}</p>{/if}
 	{#if loadFailed}<button type="button" onclick={() => load(url)}>一覧を再取得</button>{/if}
 	{#if comics}
-		{#if bulkRating || bulkDelete}<p class="scope">{scope} · 一括操作の対象: 表示中の未削除 {targets.length}件</p>{/if}
-		<div class="table" bind:this={viewport} onscroll={savePosition}>
+		<div class="table-scroll">
 			<table class="comics" role="grid" aria-label="コミック一覧" aria-describedby="cursor-status" aria-activedescendant={cursor == null ? undefined : `comic-row-${cursor}`} aria-busy={locked} tabindex="0" bind:this={table} onfocusin={focusRow} onpointerdown={focusRow}>
 				<thead><tr>
 					<th class="brand">{#if sortable}<button type="button" onclick={() => changeSort('brand')}>brand</button>{:else}brand{/if}</th>
@@ -246,7 +246,8 @@ main
 	min-width: 0
 	h2
 		font-size: var(--fs-xl)
-		margin: var(--sp-3) 0
+		margin: 0
+		flex: 1 1 auto
 		overflow-wrap: anywhere
 	.list-tools
 		display: flex
@@ -254,13 +255,7 @@ main
 		align-items: center
 		justify-content: space-between
 		gap: var(--sp-2)
-		margin: var(--sp-2) 0
-		span
-			min-width: 0
-			overflow-wrap: anywhere
-	.scope
-		font-size: var(--fs-sm)
-		overflow-wrap: anywhere
+		margin-bottom: var(--sp-2)
 	[role="alert"]
 		color: var(--c-danger)
 	button
@@ -273,21 +268,12 @@ main
 		cursor: pointer
 		&:disabled
 			opacity: 0.5
-	.table
-		max-height: 70dvh
-		overflow: auto
-		overscroll-behavior: contain
 	table
 		min-width: 680px
 		width: 100%
 		table-layout: fixed
 		border-collapse: separate
 		border-spacing: 0
-		thead
-			position: sticky
-			top: 0
-			z-index: 1
-			background: var(--c-bg)
 		th, td
 			padding: var(--sp-1)
 			line-height: 1.5
@@ -304,8 +290,9 @@ main
 			padding: 0
 			border: 0
 		.focused
-			background: var(--c-accent-bg)
-			box-shadow: inset 3px 0 var(--c-accent)
+			background: var(--c-overlay-2)
+		tbody tr:not(.focused):hover
+			background: var(--c-overlay-1)
 		.deleted
 			color: var(--c-text-muted)
 		.brand

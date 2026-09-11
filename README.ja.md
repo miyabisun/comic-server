@@ -130,3 +130,17 @@ Docker版には実行ファイル・外部モデル・推論ライブラリを�
 - [リバースプロキシ設定](docs/reverse-proxy.md) — Nginx 等でサブパス配下にデプロイする方法
 - [開発ガイド](docs/development.md) — ローカルでの開発・ビルド方法
 - [API リファレンス](docs/api.md) — REST API の仕様
+
+## 一覧のブラウザ回帰検証
+
+```sh
+bun install --frozen-lockfile
+bunx playwright install --with-deps chromium
+bun run test:e2e
+```
+
+テストは一時SQLiteと画像フォルダを作り、127.0.0.1:5190で実APIとビルド済みUIを起動します。
+設定済みのライブラリは使用せず、終了時に一時データを削除します。Bunによる通常テストとの
+混在を避け、Playwrightの対象は `e2e/*.pw.js` としています。
+本棚・ブランドの表示領域、ページスクロール、明暗・狭幅、キーボード、分類・削除・一括確認、
+読書後と再読込時の位置復元を検証します。測定基準と実装の所有箇所はroot DESIGN.mdにあります。

@@ -8,7 +8,8 @@
     "build:client": "cd client && bun install && bun run build",
     "build": "bun run build:client && cargo build --release --locked",
     "start": "bun --env-file=.env src/index.ts",
-    "test": "bun test && cargo test --locked"
+    "test": "bun test && cargo test --locked",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
@@ -18,6 +19,7 @@
     "smart-sort": "^0.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@types/bun": "^1.2.0",
     "drizzle-kit": "^0.30.0",

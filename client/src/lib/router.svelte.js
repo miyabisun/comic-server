@@ -41,6 +41,8 @@ function getPathFromURL() {
 
 function syncRoute() {
 	const result = matchRoute(getPathFromURL());
+	// Lists restore only after their asynchronous rows are rendered.
+	history.scrollRestoration = result.index === 1 || result.index === 2 ? 'manual' : 'auto';
 	if (result.index === 2) result.params.match = new URLSearchParams(window.location.search).get('match') ?? 'fuzzy';
 	_routeIndex = result.index;
 	_params = result.params;
