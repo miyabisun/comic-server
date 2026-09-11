@@ -1,226 +1,148 @@
 ---
 version: alpha
 name: Sumi / comic-server
-description: >
-  Self-contained comic-server design contract. CSS custom properties in
-  client/src/global.sass implement the project tokens.
+description: 作品一覧と漫画画像を主役にするcomic-serverのデザイン契約。
 colors:
-  # --- Project accent (violet) ---
-  # Unsuffixed = Washi theme (light), -dark = Sumi theme (dark).
-  # The Washi value is a dark violet ink (white-on-accent ~9.9:1); the
-  # Sumi value reads ~5.2:1 (AA) on surface-dark. Violet keeps this tool
-  # tellable at a glance from its siblings: amber = 5ch-viewer,
-  # blue = novel-server, red = youtube-sub-feed.
   accent: "#5a2d82"
   accent-subtle: "rgba(90, 45, 130, 0.12)"
   accent-dark: "#a878f0"
   accent-subtle-dark: "rgba(168, 120, 240, 0.15)"
-  # --- Functional data colors (Washi / Sumi pairs) ---
-  # star-on = a lit review star (the comic's shelf level). Gold,
-  # deliberately decoupled from the chrome accent so a page of ratings
-  # never reads as a page of buttons.
   star-on: "#8a6000"
   star-on-dark: "#e0a800"
 ---
 
-# comic-server — Sumi Project Overrides
+# comic-server
 
 ## Overview
 
-This file owns the project design contract. The existing tokens and shared
-styles in `client/src/global.sass` are its implementation. External templates
-are bootstrap references and do not override this contract.
+このファイルを製品のデザインの正本とする。共有テンプレートは導入時の参考資料であり、本書を上書きしない。
+色と寸法の実装は `client/src/global.sass`、一覧の共通実装は `ComicList.svelte` が持つ。
 
-Shared chrome uses system fonts, the 12/14/15/16/17px type scale, 4/8/12/16/24px
-spacing, 6/8/12px radii, neutral surfaces, and the violet accent. Use existing
-SVG icons and visible keyboard focus. Keep buttons native, with at least 36px
-height outside dense tables. Status is expressed in text; do not rely on color.
-
-comic-server is a self-hosted comic library: bookshelves of comics browsed
-as dense tables, and a full-viewport page reader. The chrome recedes; the
-comic pages are the content.
-
-Accent: **violet** (`#5a2d82` Washi / `#a878f0` Sumi). It marks
-interactive chrome only: the active shelf tab underline, the single
-primary button per screen, focused inputs, the shared focus ring.
-
-Themes follow the family's Sumi-first convention: `:root` in
-`client/src/global.sass` IS the Sumi (dark) theme, and Washi (light,
-e-paper) is applied via `@media (prefers-color-scheme: light)` — the OS
-decides; there is no in-app toggle and no `data-theme` attribute.
+一覧では多くの作品を見渡せること、readerでは漫画画像を大きく読めることを優先する。
+補助表示や操作部品を足すときは、主役の表示面積と視線の流れを保つ。
+既に行・本棚タブ・入力欄で分かる情報を、別の説明帯へ重複表示しない。
 
 ## Colors
 
-Functional data colors in the Sumi sense — they encode domain state,
-never decoration, and are exempt from the one-accent rule:
+既存のCSS変数を使う。暗色はSumi、明色はWashiとし、OSの `prefers-color-scheme` に従う。
+アプリ内のテーマ切替や `data-theme` は設けない。Washiではアニメーションを無効にする。
 
-- **star-on (#8a6000 / #e0a800):** the lit state of a review star.
-  Gold, intentionally separate from the violet accent: stars encode the
-  comic's shelf level (data), not "you are here" (chrome). Unlit stars
-  are muted chrome. Hover preview of a would-be level renders in accent
-  (an interaction cue, not a data value).
-- **Shelf levels (unread / hold / like / favorite / love / legend)**
-  carry **no per-level color**: the level is expressed by the *count* of
-  lit stars only. Any future per-level color must first be declared here
-  as a Washi darkness ramp (5ch-viewer's rate scale is the model).
+| 用途 | 表現 |
+|---|---|
+| 背景・枠・通常の操作部品 | 無彩色の面と1pxの境界線 |
+| 現在の本棚 | 通常の文字色と2pxの紫の下線 |
+| 主操作・入力フォーカス | 紫。塗りつぶす主操作は画面に最大1つ |
+| 選択行 | 控えめな無彩色の背景。紫の面と強い縁取りを重ねない |
+| 棚の分類 | 点灯した金色の星の数。棚ごとの色は付けない |
+| 危険・エラー | danger系の色と説明文 |
+| 削除済み作品 | muted系の文字色 |
 
-Everything else that looks stateful maps to template roles, not new
-colors:
+星は分類データを示す。未点灯は控えめな色、変更先のホバー予告は紫とする。
+金色を操作部品へ流用せず、点灯した星を紫にしない。成功状態のために緑を追加しない。
+新しい色の役割が必要なら、用途と明暗の組を本書へ定める。
+キーボードフォーカスは共通の可視リングで示し、選択行の背景とは区別する。
+状態は文字やアクセシビリティ属性でも伝え、色だけに依存しない。
 
-- **Upscale workflow (request → processing → pending):** confirm is the
-  screen's one primary (accent-filled) button, rollback is the danger
-  role, request is a default button. No green "success" color exists in
-  this project.
-- **Excluded file rows** (custom_path misses) and **missing-directory
-  warnings**: danger role — they are error states, not a new meaning.
-- **Deleted comics** (soft-deleted rows): muted chrome, not a data color.
+## Typography
+
+system fontを使う。文字サイズは12/14/15/16/17px、余白は4/8/12/16/24pxとする。
+角丸は6/8/12pxを使う。既存のSVGアイコンを再利用し、絵文字や文字記号で代用しない。
+分類の星はデータ表示のため、このアイコン規則の対象外とする。
 
 ## Layout
 
-The template's two-pane list+detail grid does not apply. This project has
-two domain layouts instead:
+本棚とブランド一覧は、全幅の密なHTML tableとする。列はbrand/title/registered/review/deleteを保つ。
+狭い画面でも表を保ち、必要な横スクロールだけを表内に収める。
+縦方向はページをスクロールする。列見出しも行と一緒に流す。
+固定見出し、表内の縦スクロール、高さ制限、画面の残り高さを計算する枠を設けない。
 
-- **Bookshelf table:** a dense, full-width table (brand / title /
-  registered / review / delete) whose entire purpose is scanning many
-  rows at once. It stays a table at every viewport width. Chrome
-  (borders, row hover, scrollbars) uses tokens; rules are 1px hairlines.
-  Sortable column headers signal with `cursor: pointer` and a hover wash.
-- **Reader (Comic page):** a full-viewport canvas; the page image is the
-  screen. All chrome on this screen floats over the image (see Reader
-  canvas below).
+本棚タブは主要ナビゲーションとし、アプリ名からホームへ戻れるようにする。
+ブランド検索などの必要な入力と操作は見出しの近くへまとめる。
+「操作対象」の常設帯と、本棚名・一括対象件数を繰り返す帯は置かない。
+ヘルプは操作行から開き、一括対象の範囲と件数は実行前の確認で示す。
+支援技術への対象通知を残す場合も、可視の説明帯を追加しない。
+エラーは発生時に復旧操作とともに表示し、通常時には場所を予約しない。
+
+readerは全画面の画像表示とする。操作部品は画像の端に重ね、画像の面積を削らない。
+画像の透過部分を確認する市松模様は、両テーマで白と `#ccc` の60pxタイルを使う。
+これは画像検査用の例外であり、通常画面の背景へ流用しない。
+カウンター・星・情報ボタンは `--c-scrim` と `--c-on-scrim` を使う。
 
 ## Components
 
-Domain components on top of the Sumi recipes:
+- 本棚とブランドの行高は全棚でそろえる。削除済みや削除ボタンの有無で変えない。
+  行高は文字の行ボックスと上下の `--sp-1` で決める。目安は32pxとし、行ごとの固定高さは指定しない。
+- 表内の操作部品は24×24px以上とする。表外のアイコンボタンは36×36px以上、通常ボタンは高さ36px以上とする。
+  readerのファイルプレビュー内のボタンだけは、密度を保つため24px以上を認める。
+- 表の列見出しから並べ替えられる場合は、ポインターと控えめなホバー背景で操作を示す。
+- 重複通知と比較パネルはカードとする。比較はラベルと値の2列、パスは等幅文字で示す。
+  「Keep duplicate」を主操作、「Keep existing」「Register as new」を通常操作とする。
+- メタデータのモーダルは12pxの角丸とscrimを使い、SVGの閉じるボタン・Esc・背景クリックで閉じる。
+  情報ボタンも通常の角丸を使い、円形の浮動ボタンにはしない。操作にはラベルを付ける。
+- ファイルプレビューは行番号付きの等幅表示とする。除外行はdanger色と取り消し線で示す。
+  行の操作で該当ページへ移動する。正規表現のエラーは `custom_path` 入力の下に示す。
+- アップスケールの確定は主操作、取り消しはdanger、依頼開始は通常操作とする。
+  リマスターも同じ無彩色の部品を使い、狭幅ではメッセージを折り返す。
 
-- **Reader canvas:** the surface comic pages render on. Its checkerboard
-  background (white base, `#ccc` squares, 60px tile — for judging
-  transparent-PNG edges) is a **domain exception that stays light in
-  both themes**, the image-viewer exception of the template applied to a
-  proofing surface: page images are the ground truth and are not tinted
-  by theme. The checkerboard values live as reader-local constants, not
-  global tokens. The page counter, review stars, and info button sit ON
-  the image and therefore use scrim-on-image tokens
-  (`--c-scrim` / `--c-on-scrim`), not surface colors.
-- **ReviewStars:** ★ glyphs are **data visualization, not chrome** — the
-  template's emoji/text-glyph ban does not apply to them. Lit = star-on,
-  unlit = muted; level order comes from `lib/levels.js`. Tapping a star
-  moves that one comic directly. Bulk classification requires an explicit confirmation.
-- **Dense-table row controls (Bookshelf / Brand tables):** inside these
-  two tables — and only there — the template's 36px icon-button recipe
-  is relaxed to a **24×24px hit area** (the floor; never smaller) so
-  that control chrome does not set the row height. All tbody rows share
-  **one uniform computed height** across every shelf (with or without a
-  delete control, including soft-deleted rows), and Bookshelf and Brand
-  rows match each other. The row height is driven by the type line box
-  plus a consistent `--sp-1` vertical cell padding — roughly 32px at
-  body size — never by buttons and never by a hardcoded per-row height.
-  Icon-buttons everywhere else (reader info button, modal close) keep
-  the template's 36px recipe; this exception must not leak out of the
-  dense tables.
-- **Shelf nav (Header):** the shelf list is the app's primary nav and
-  uses the Sumi tab recipe: label type, muted when inactive, on-surface
-  with a 2px accent underline for the current shelf. The app title links
-  home. No breadcrumb separators.
-- **Duplicates notification + compare panel (Home):** the notification
-  is a Sumi card; the compare panel is a card with a two-column
-  definition grid (labels caption-muted, file paths monospace).
-  "Keep duplicate" (the replace action) is the screen's primary button;
-  "Keep existing" / "Register as new" are default buttons.
-- **Metadata edit modal (Comic):** Sumi modal recipe (lg radius, scrim,
-  quiet SVG × button, Esc/scrim-click to close). Its right pane — the
-  **line-numbered monospace file preview** with excluded rows struck
-  through (danger role) and clickable rows jumping the reader — is a
-  domain element and keeps its terminal-like density. Inputs follow the
-  template input recipe; the regex-error line under custom_path is
-  danger-role caption text.
-- **Info button (reader):** a Sumi icon-button (sm radius, SVG info
-  glyph, `aria-label`) floating over the canvas on scrim tokens. Not a
-  circular FAB — the template has no circular buttons.
+## 操作契約
 
-## Do's and Don'ts
+### 選択と履歴
 
-- Do keep star gold monosemous: star-on = shelf level, accent = chrome.
-  Never color chrome gold or render a lit star in accent.
-- Don't add a per-level color, upscale-state green, or any new hue
-  without declaring it here first as a Washi/Sumi pair (Washi as a
-  darkness ramp).
-- Do keep deletions behind a two-step confirmation with cancellation as the
-  default. Individual shelf moves are direct; bulk classification requires an
-  explicit scope/count confirmation because it determines future reading.
-- Do keep the reader canvas checkerboard light in both themes — it is a
-  proofing surface, not chrome.
-- Don't let modal or overlay chrome compete with the page image: reader
-  overlays stay on scrim tokens and appear only at the canvas edges.
-- Don't reuse the dense-table 24px icon-button outside the Bookshelf /
-  Brand tables — everywhere else the template's 36px recipe stands.
+本棚とブランドは作品IDでカーソルを共有する。最初は先頭行を選択し、空なら対象を持たない。
+ソートと再取得では同じIDを保つ。分類で対象が消えたら元の位置の次の作品、末尾なら直前を選ぶ。
+更新失敗時は対象を保ち、更新中は次の命令を受け付けない。
+対象ID・ソート・ページのスクロール位置を履歴ごとに保存し、読書から戻ると復元する。
+カーソル移動は必要な範囲だけスクロールし、作品詳細を取得しない。
+行内のDOMフォーカスとカーソルを同期し、選択行を支援技術へ公開する。
+通常のTab移動には選択行の操作と表全体の操作だけを含める。
 
-## Remaster interaction
+### キーボード
 
-The reader information modal offers a separate “リマスター” section alongside
-upscaling. Its quiet start button explains that the original is retained and a
-new “リマスター版” comic is created. Show processing page counts, a cancel button,
-a recoverable error, or a link to the completed comic. Poll only while the modal
-is visible. Announce progress politely and errors as alerts. Starting and cancelling
-are reversible operations; no extra confirmation dialog is needed.
+| 画面 | キーと操作 |
+|---|---|
+| 一覧 | j/kで移動、Enter/Spaceで開く、1–5でhold/like/favorite/love/legendへ分類 |
+| reader | h/l・左右で1ページ、k/j・上下で10ページ移動。矢印の長押し動作を保つ |
+| reader | 1–5で分類、iでメタデータを開く |
+| 共通 | ddで単体削除の確認、bでブランド完全一致検索、?でヘルプ |
 
-Reuse the upscale section's neutral surface and default button recipe. Wrap long
-messages on narrow screens, and keep controls keyboard operable in both OS themes.
-The reader remains usable while inference runs. A missing installation is described
-as unavailable, with setup details in the documentation.
+一覧のi、gg/G、回数指定、undoは追加しない。キーリピートで分類や削除を繰り返さない。
+入力欄・select・contenteditable・IME・Ctrl/Alt/Meta・開いたダイアログでは通常の命令を抑止する。
+ヘルプは?・Esc・閉じるボタンで閉じる。ファイルプレビューはEnter/Spaceでも操作できる。
+モーダル内の操作からreaderの命令を発火させない。
 
-## Brand search
+### 分類と削除
 
-Brand pages keep the existing fuzzy search as the default for legacy URLs and
-provide a native, labelled fuzzy/exact selector. The URL owns the selected mode;
-reload, direct links and history navigation restore it. Exact matching uses the
-entire saved brand name; empty brand links are unavailable.
+星は今後読む作品の分類であり、満足度ではない。単体分類は直接実行し、一括分類は範囲と件数を確認する。
+一括操作は専用の操作部品からのみ実行し、単体のキー操作から呼ばない。
+削除はポインターとキーボードで同じ確認ダイアログを使う。
+確認対象を固定して名前を表示し、初期フォーカスは取消に置く。
+ddは500ms以内のリピートでない2打鍵で成立し、別キー・フォーカス変更・画面移動で解除する。
+単体削除は続くリピートでないyで確定し、n/N/Esc/Enterで取り消す。
+一括操作は専用の確定ボタンを使い、yでは確定しない。失敗時は対象を保ち、エラーを表示する。
+readerで削除後は元のブランドの完全一致検索へ移動し、ブランドが空なら元の本棚へ戻る。
+ブランドが空のときのbは移動せず、未設定を伝える。検索結果が空なら空の一覧を表示する。
 
-Show the selected mode and the number of non-deleted results targeted by bulk
-rating/deletion beside the controls. Bulk controls operate on those displayed IDs;
-loading, failed or stale results cannot become an action target. Reset deletion
-confirmation when the search changes. Use the shared deletion confirmation and
-native keyboard-accessible rating buttons with the dense-table tokens.
+### ブランド検索
 
-## Keyboard selection and reading
+既存URLでは曖昧検索を使う。ラベル付きのnative selectで曖昧・完全一致を選べるようにする。
+モードはURLが持ち、再読込・直接アクセス・履歴移動で復元する。完全一致は保存済みの名称全体を照合する。
+空のブランドはリンクにしない。一括対象は表示中の未削除IDに限定する。
+読込中・取得失敗・古い検索結果を操作対象にせず、検索変更時は確認を解除する。
 
-The 2026-09-09 user workflow owns these interactions. Stars classify future reading;
-bulk classification is consequential and requires a count-and-scope confirmation.
-Individual rating remains a direct action. Bulk rating/deletion is available through
-its explicit controls only; individual keyboard commands never invoke it.
+### リマスター
 
-Bookshelf and brand pages share an ID-based virtual cursor. The first row is the
-initial target. Sorting and refresh retain that ID. After a successful rating removes
-it, select the row now at its former index, or the previous row at the end. Empty
-lists have no target. A failed update keeps the target; pending updates block further
-commands. Save cursor, sorting and list scroll in the browser history entry so returning
-from reading restores them. Cursor movement scrolls only as far as needed and does
-not fetch comic details. The table remains a dense table at every width, with a
-scrolling container and a visible active row. DOM focus within a row synchronizes the
-cursor; the table exposes its active row to assistive technology. Only the active row's
-controls enter the normal Tab sequence, alongside table-level controls.
+情報モーダルに専用欄を置き、原本を残して「リマスター版」を作ることを開始前に伝える。
+進捗のページ数・中止・復旧可能なエラー・完成作品へのリンクを状態に応じて表示する。
+ポーリングはモーダル表示中だけ行い、処理中もreaderを使えるようにする。
+進捗は控えめに通知し、エラーはalertで知らせる。開始・中止に追加の確認は挟まない。
+未導入なら利用できないことを示し、導入手順は文書へ置く。
 
-List keys: j/k move, Enter/Space open, 1–5 classify hold/like/favorite/love/legend,
-dd requests deletion of that one comic, b opens its exact brand, and ? opens help.
-Reader keys: h/l and left/right move one page, k/j and up/down move ten, 1–5 classify,
-i opens the existing metadata dialog, dd requests deletion, b opens its exact brand,
-and ? opens help. Keep the existing arrow-key hold behavior. No list i, gg/G, counts,
-or undo commands are introduced.
+## 検証と移行
 
-Deletion uses a native dialog naming the frozen target, with cancellation focused by
-default. dd requires two non-repeat d presses within 500ms; another key, focus change,
-or navigation clears it. Only a subsequent non-repeat y confirms an individual delete;
-n/N/Esc/Enter cancel. A failed delete keeps the same target and displays its error.
-Click/tap deletion retains its two-step operation through the same dialog. Bulk dialogs
-name their captured scope/count and require their explicit confirm control; y is not
-a bulk shortcut. The confirmation dialog is shared by pointer and keyboard entry paths.
+同じデータと画面サイズで変更前後を比べ、主要情報の面積・可視行数・選択の強さを確認する。
+明暗・狭幅・長い作品名・空・読込中・失敗・キーボード操作を、変更に関係する範囲で実ブラウザ検証する。
+色の変数を使ったことやlintの通過だけで、画面全体が本書に適合したと判定しない。
 
-After reader deletion succeeds, navigate to the captured brand's exact search. If the
-brand is empty, return to the comic's pre-delete bookshelf. Empty-brand b does not
-navigate; explain that no brand is set. An empty result stays an empty list. Input,
-select, contenteditable, IME, Ctrl/Alt/Meta and open dialogs suppress normal commands;
-key repeat cannot classify or delete another comic. Help closes with ?/Esc or its
-close button. Metadata editing keeps native form controls; file-preview buttons work
-with Enter/Space and never enable reader commands inside the dialog. File-preview
-buttons retain their terminal-like density with a 24px minimum target; this is a
-reader-modal exception to the general 36px button recipe.
+ページ単位の縦スクロール、重複帯の撤去、静かな選択背景は合意済みの改訂方針であり、UI実装は未反映である。
+実装は先行する統一レイアウト基盤を受けて、comic-server修正タスクで行う。
+その際、現在の表内スクロール位置の保存をページ位置へ移し、読書後の復元を検証する。
