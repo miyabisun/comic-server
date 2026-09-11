@@ -1,6 +1,6 @@
 {
   "name": "comic-server",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "license": "CC-BY-NC-4.0",
   "scripts": {
