@@ -4,6 +4,7 @@
 	import { link, navigate } from '$lib/router.svelte.js';
 	import { brandPath } from '$lib/brand.js';
 	import { commandKey, createDeleteSequence, reconcileCursor, ratingForKey } from '$lib/keyboard.js';
+	import { listWindow } from '$lib/list-window.js';
 	import { ratingLevels } from '$lib/levels.js';
 	import fetcher from '$lib/fetcher.js';
 	import { updateComic, deleteComic } from '$lib/api.js';
@@ -23,19 +24,34 @@
 	let pending = $state(null);
 	let help = $state(false);
 	let table = $state(null);
+	let pageY = $state(window.scrollY);
+	let screenHeight = $state(window.innerHeight);
+	let listTop = $state(0);
+	let rowHeight = $state(32);
 	let request = 0;
 	let entryPath = '';
 	const sequence = createDeleteSequence();
 	let sorted = $derived(!comics ? [] : !sortKey ? comics : [...comics].sort((a, b) =>
 		a[sortKey] < b[sortKey] ? -1 : a[sortKey] > b[sortKey] ? 1 : (a.title ?? '').localeCompare(b.title ?? '')));
-	let selected = $derived(sorted.find((comic) => comic.id === cursor));
+	let cursorIndex = $derived(sorted.findIndex((comic) => comic.id === cursor));
+	let selected = $derived(sorted[cursorIndex]);
 	let targets = $derived(sorted.filter((comic) => comic.deleted_at == null));
 	let locked = $derived(busy || loading || loadFailed);
+	let indices = $derived(listWindow(sorted.length, cursorIndex, pageY - listTop, screenHeight, rowHeight));
+
+	function measureRows() {
+		if (!table) return;
+		const body = table.tBodies[0];
+		listTop = body.getBoundingClientRect().top + window.scrollY;
+		rowHeight = body.querySelector('[data-comic-id]')?.getBoundingClientRect().height || rowHeight;
+		screenHeight = window.innerHeight;
+		pageY = window.scrollY;
+	}
 
 	function savePosition() {
 		if (!comics || loading || entryPath !== location.pathname + location.search) return;
 		history.replaceState({ ...history.state, comicCursor: {
-			url, id: cursor, index: sorted.findIndex((comic) => comic.id === cursor), scrollY: window.scrollY, sortKey
+			url, id: cursor, index: cursorIndex, scrollY: window.scrollY, sortKey
 		} }, '');
 	}
 
@@ -43,13 +59,14 @@
 		await tick();
 		if (focus) table?.focus({ preventScroll: true });
 		document.getElementById(`comic-row-${cursor}`)?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+		pageY = window.scrollY;
 		savePosition();
 	}
 
 	async function load(endpoint, reset = false, excludedId = null) {
 		const current = ++request;
 		const saved = reset ? (history.state?.comicCursor?.url === endpoint ? history.state.comicCursor : {}) : {
-			id: cursor, index: sorted.findIndex((comic) => comic.id === cursor), scrollY: window.scrollY, sortKey
+			id: cursor, index: cursorIndex, scrollY: window.scrollY, sortKey
 		};
 		if (reset) { entryPath = location.pathname + location.search; comics = null; pending = null; help = false; sortKey = saved.sortKey ?? null; sequence.reset(); }
 		loading = true;
@@ -59,11 +76,13 @@
 			const result = await fetcher(endpoint);
 			if (current !== request) return false;
 			comics = result;
+			cursor = reconcileCursor(sorted.filter((comic) => comic.id !== excludedId), saved.id, saved.index ?? 0);
+			loading = false;
 			await tick();
 			if (current !== request) return false;
-			cursor = reconcileCursor(sorted.filter((comic) => comic.id !== excludedId), saved.id, saved.index ?? 0);
-			await tick();
+			measureRows();
 			window.scrollTo({ top: saved.scrollY ?? 0, behavior: 'instant' });
+			pageY = window.scrollY;
 			// Old entries stored a table offset; retain their ID and reveal it instead.
 			if (saved.scrollY == null && saved.id != null) await reveal(false);
 			if (document.activeElement === document.body || document.activeElement?.closest('header')) table?.focus({ preventScroll: true });
@@ -162,7 +181,7 @@
 		if (key === '?' && !e.repeat) { e.preventDefault(); help = true; return; }
 		if (['j', 'k'].includes(key)) {
 			e.preventDefault();
-			const index = sorted.findIndex((comic) => comic.id === cursor);
+			const index = cursorIndex;
 			cursor = sorted[Math.max(0, Math.min(sorted.length - 1, index + (key === 'j' ? 1 : -1)))]?.id ?? null;
 			reveal();
 			return;
@@ -189,7 +208,7 @@
 	}
 </script>
 
-<svelte:window onkeydown={keydown} onblur={() => sequence.reset()} onscroll={savePosition} onpagehide={savePosition} />
+<svelte:window onkeydown={keydown} onblur={() => sequence.reset()} onscroll={() => { pageY = window.scrollY; savePosition(); }} onresize={measureRows} onpagehide={savePosition} />
 
 <main id="bookshelf">
 	<div class="list-tools">
@@ -202,8 +221,8 @@
 	{#if loadFailed}<button type="button" onclick={() => load(url)}>一覧を再取得</button>{/if}
 	{#if comics}
 		<div class="table-scroll">
-			<table class="comics" role="grid" aria-label="コミック一覧" aria-describedby="cursor-status" aria-activedescendant={cursor == null ? undefined : `comic-row-${cursor}`} aria-busy={locked} tabindex="0" bind:this={table} onfocusin={focusRow} onpointerdown={focusRow}>
-				<thead><tr>
+			<table class="comics" role="grid" aria-label="コミック一覧" aria-describedby="cursor-status" aria-activedescendant={cursor == null ? undefined : `comic-row-${cursor}`} aria-rowcount={sorted.length + 1} aria-busy={locked} tabindex="0" bind:this={table} onfocusin={focusRow} onpointerdown={focusRow}>
+				<thead><tr aria-rowindex="1">
 					<th class="brand">{#if sortable}<button type="button" onclick={() => changeSort('brand')}>brand</button>{:else}brand{/if}</th>
 					<th class="title">title</th>
 					<th class="date">{#if sortable}<button type="button" onclick={() => changeSort(null)}>registered</button>{:else}registered{/if}</th>
@@ -215,9 +234,12 @@
 					<th class="delete">{#if bulkDelete}<button type="button" class="icon-button" disabled={locked || !targets.length} aria-label="すべて削除" onclick={() => ask('bulk-delete', targets)}><Icon name="trash" /></button>{/if}</th>
 				</tr></thead>
 				<tbody>
-					{#each sorted as comic (comic.id)}
+					{#each indices as index, i (sorted[index].id)}
+						{@const comic = sorted[index]}
+						{@const gap = index - (indices[i - 1] ?? -1) - 1}
 						{@const active = cursor === comic.id}
-						<tr id={`comic-row-${comic.id}`} data-comic-id={comic.id} class:focused={active} class:deleted={comic.deleted_at != null} aria-selected={active}>
+						{#if gap > 0}<tr class="spacer" aria-hidden="true"><td colspan="5" style:height={gap * rowHeight + 'px'}></td></tr>{/if}
+						<tr id={`comic-row-${comic.id}`} data-comic-id={comic.id} class:focused={active} class:deleted={comic.deleted_at != null} aria-selected={active} aria-rowindex={index + 2}>
 							<td class="brand" title={comic.brand ?? ''}>{#if brandPath(comic.brand)}<a tabindex={active ? 0 : -1} href={link(brandPath(comic.brand))}>{comic.brand}</a>{/if}</td>
 							<td class="title" title={comic.title || comic.file}>{#if comic.deleted_at}{comic.title || comic.file}{:else}<a tabindex={active ? 0 : -1} href={link('/comics/' + comic.id)}>{comic.title || comic.file}</a>{/if}</td>
 							<td class="date">{format(parseISO(comic.created_at), 'yyyy-MM-dd HH:mm:ss')}</td>
@@ -225,6 +247,9 @@
 							<td class="delete">{#if !comic.deleted_at}<button type="button" class="icon-button" tabindex={active ? 0 : -1} disabled={locked} aria-label={`「${comic.title || comic.file}」を削除`} onclick={() => ask('delete', [comic])}><Icon name="trash" /></button>{/if}</td>
 						</tr>
 					{/each}
+					{#if indices.at(-1) < sorted.length - 1}
+						<tr class="spacer" aria-hidden="true"><td colspan="5" style:height={(sorted.length - 1 - indices.at(-1)) * rowHeight + 'px'}></td></tr>
+					{/if}
 				</tbody>
 			</table>
 		</div>
@@ -284,6 +309,9 @@ main
 			font-size: var(--fs-sm)
 			border-bottom: 1px solid var(--c-border)
 			text-align: left
+		.spacer td
+			padding: 0
+			border: 0
 		button
 			min-height: 24px
 			min-width: 24px
