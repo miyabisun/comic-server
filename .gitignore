@@ -8,6 +8,3 @@ client/node_modules
 
 target/
 remaster/models/
-
-test-results/
-playwright-report/

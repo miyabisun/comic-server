@@ -5,13 +5,15 @@
 	let toasts = $derived(getToasts());
 </script>
 
-<div class="toast-container" role="status" aria-live="polite">
+{#if toasts.length > 0}
+	<div class="toast-container">
 		{#each toasts as toast (toast.id)}
 			<div class="toast" transition:fade={{ duration: 200 }}>
 				{toast.message}
 			</div>
 		{/each}
-</div>
+	</div>
+{/if}
 
 <style lang="sass">
 .toast-container
