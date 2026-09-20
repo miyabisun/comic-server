@@ -2,7 +2,7 @@
 
 自分のコミックコレクションをブラウザで管理・閲覧できるサーバーです。
 
-画像フォルダを指定するだけで、本棚のように分類・レビューしながら読むことができます。
+画像フォルダ内のコミックを登録し、本棚で分類・レビューしながら閲覧できます。
 
 ## Quick Start (Docker)
 
@@ -26,7 +26,7 @@ COMIC_PATH=/path/to/comics bun start
 ## 環境変数
 
 現行の変数・必須条件・未設定時の既定値・不正値の扱いは
-[README.md の環境変数一覧](README.md#environment-variables)を正本とする。
+[README.md の環境変数一覧](README.md#environment-variables)を参照してください。
 サーバー設定と、画像処理スクリプト・OS の実行環境を分けて掲載している。
 `bun start` は `.env` を読み込み、Docker では `environment` / `-e` で渡す。
 `COMIC_PATH` とボリュームのマウント先を一致させ、DB の親ディレクトリを先に用意する。
@@ -122,7 +122,7 @@ Docker版には実行ファイル・外部モデル・推論ライブラリを�
 
 自作コードは利用者指定の配布方針により[CC BY-NC 4.0](LICENSE)。採用するV1モデルは
 **CC BY-NC-SA 4.0**を保持し、各依存のライセンスとも区別する。
-[第三者の帰属・バージョン・条件](README.md#license-and-third-party-attribution)を正本とする。
+第三者の帰属・バージョン・利用条件は、[README.md の該当節](README.md#license-and-third-party-attribution)を参照してください。
 
 ## 詳細ドキュメント
 
