@@ -8,6 +8,7 @@ import { comics } from '../db/schema.js'
 import { comicPath } from '../lib/config.js'
 import sanitize from '../lib/sanitize-filename.js'
 import parseComicName from '../lib/parse-comic-name.js'
+import { imageMimeType } from '../lib/image-format.js'
 
 const app = new Hono()
 
@@ -21,7 +22,7 @@ function normalize(name: string): string {
 
 function countImages(dir: string): number {
   if (!fs.existsSync(dir)) return 0
-  return readdir(dir).filter((f: string) => /\.(png|jpe?g)$/i.test(f)).length
+  return readdir(dir).filter((f: string) => imageMimeType(f)).length
 }
 
 // Find the existing comic that matches a duplicate name.

@@ -1,0 +1,10 @@
+Owned synthetic fixtures: 32x32 solid red/blue, no third-party artwork.
+Generated with ImageMagick 7; the repository license applies.
+Run in this directory:
+
+magick -size 32x32 xc:red -strip static.webp
+magick -size 32x32 xc:red -strip static.gif
+magick -size 32x32 xc:red -strip static.png
+magick -size 32x32 xc:blue -strip static.jpg
+magick -delay 40 -size 32x32 xc:red -delay 40 -size 32x32 xc:blue -loop 0 -strip animated.gif
+magick -delay 40 -size 32x32 xc:red -delay 40 -size 32x32 xc:blue -loop 0 -strip animated.webp

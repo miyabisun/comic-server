@@ -9,6 +9,7 @@ import { comics } from '../db/schema.js'
 import { comicPath } from '../lib/config.js'
 import sanitizeFilename from '../lib/sanitize-filename.js'
 import parseComicName from '../lib/parse-comic-name.js'
+import { imageMimeType } from '../lib/image-format.js'
 
 type Comic = InferSelectModel<typeof comics>
 
@@ -79,7 +80,7 @@ app.get('/api/comics/:id', (c) => {
 
   const allImages = readdir(comicDir)
   const images = naturalSort(
-    allImages.filter((name: string) => /\.(png|jpe?g)$/.test(name)),
+    allImages.filter((name: string) => imageMimeType(name)),
     true,
     'ASC',
   )

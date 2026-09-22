@@ -264,7 +264,7 @@
 				{#if comic.images.length > 0}
 					{#each comic.images as it (it)}
 						<li>
-							<img src="{config.path.images}/{comic.bookshelf}/{comic.file}/{encodeURI(it)}" alt="" loading="lazy" />
+							<img src="{config.path.images}/{[comic.bookshelf, comic.file, ...it.split('/')].map(encodeURIComponent).join('/')}" alt="" loading="lazy" />
 						</li>
 					{/each}
 				{:else}

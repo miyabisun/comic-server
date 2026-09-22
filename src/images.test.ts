@@ -9,6 +9,11 @@ import { comicPath } from './lib/config.js'
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURf8AAP///0EdNBEAAAABYktHRAH/Ai3eAAAAB3RJTUUH6gkJDBQzk3fwmAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyNi0wOS0wOVQxMjoyMDo1MSswMDowMDb9R10AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjYtMDktMDlUMTI6MjA6NTErMDA6MDBHoP/hAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDI2LTA5LTA5VDEyOjIwOjUxKzAwOjAwELXePgAAAAxJREFUCNdjYGBgAAAABAABJzQnCgAAAABJRU5ErkJggg==', 'base64')
 const jpeg = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAACAAIDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAVAQEBAAAAAAAAAAAAAAAAAAAHCf/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ADoDFU3/2Q==', 'base64')
 let fixture: string
+const newImages = ['static.webp', 'static.gif', 'animated.webp', 'animated.gif'].map(name => ({
+  name,
+  bytes: fs.readFileSync(new URL(`./test/fixtures/images/${name}`, import.meta.url)),
+  mime: name.endsWith('webp') ? 'image/webp' : 'image/gif',
+}))
 let outside: string
 let privateDir: string
 beforeEach(() => {
@@ -21,8 +26,12 @@ afterEach(() => {
   for (const dir of [fixture, outside, privateDir]) fs.rmSync(dir, { recursive: true, force: true })
 })
 
-test('serves PNG and JPEG bytes with encoded paths and internal image links', async () => {
-  for (const [name, bytes, mime] of [['page.png', png, 'image/png'], ['page.jpg', jpeg, 'image/jpeg'], ['page.JPEG', jpeg, 'image/jpeg']] as const) {
+test('serves original static and animated image bytes with encoded paths and internal links', async () => {
+  const images = [['page.png', png, 'image/png'], ['page.jpg', jpeg, 'image/jpeg'], ['page.JPEG', jpeg, 'image/jpeg'],
+    ...newImages.map(({ name, bytes, mime }) => [name, bytes, mime]),
+    ...newImages.map(({ name, bytes, mime }) => [name.toUpperCase(), bytes, mime]),
+  ] as [string, Buffer, string][]
+  for (const [name, bytes, mime] of images) {
     fs.writeFileSync(path.join(fixture, name), bytes)
     fs.symlinkSync(name, path.join(fixture, `link-${name}`))
     for (const base of ['', '/comic']) {
@@ -33,7 +42,7 @@ test('serves PNG and JPEG bytes with encoded paths and internal image links', as
         expect(response.headers.get('content-type')).toBe(mime)
         expect(response.headers.get('content-length')).toBe(String(bytes.length))
         expect(response.headers.get('x-content-type-options')).toBe('nosniff')
-        expect(Buffer.from(await response.arrayBuffer())).toEqual(bytes)
+        expect(Buffer.from(await response.arrayBuffer())).toEqual(Buffer.from(bytes))
       }
     }
   }
@@ -53,9 +62,18 @@ test('never serves databases, disguised files, outside links or private staging'
   fs.writeFileSync(path.join(privateDir, 'page.png'), png)
   fs.symlinkSync(path.join(privateDir, 'page.png'), path.join(fixture, 'private.png'))
   fs.symlinkSync(privateDir, path.join(fixture, 'private-dir'))
+  const rejected: string[] = []
+  for (const { name, bytes } of newImages) {
+    for (const prefix of ['disguised-', 'outside-', 'private-']) rejected.push(prefix + name)
+    fs.copyFileSync(path.join(fixture, 'comic.db'), path.join(fixture, `disguised-${name}`))
+    fs.writeFileSync(path.join(outside, name), bytes)
+    fs.symlinkSync(path.join(outside, name), path.join(fixture, `outside-${name}`))
+    fs.writeFileSync(path.join(privateDir, name), bytes)
+    fs.symlinkSync(path.join(privateDir, name), path.join(fixture, `private-${name}`))
+  }
   const app = createApp('/comic')
   const prefix = `/comic/images/${encodeURIComponent(path.basename(fixture))}/`
-  for (const name of ['comic.db', 'comic%2edb', 'settings.yaml', 'script.svg', 'disguised.jpg', 'disguised.png', 'database.png', 'outside.jpg', 'private.png', 'private-dir/page.png']) {
+  for (const name of ['comic.db', 'comic%2edb', 'settings.yaml', 'script.svg', 'disguised.jpg', 'disguised.png', 'database.png', 'outside.jpg', 'private.png', 'private-dir/page.png', ...rejected]) {
     const response = await app.request(prefix + name)
     expect(response.status, name).toBe(403)
     expect(response.headers.get('content-type')).toContain('application/json')

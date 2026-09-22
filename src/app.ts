@@ -3,7 +3,7 @@ import { serveStatic } from 'hono/bun'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { getMimeType } from 'hono/utils/mime'
+import { imageMimeType, matchesImageSignature } from './lib/image-format.js'
 
 import comics from './routes/comics.js'
 import bookshelves from './routes/bookshelves.js'
@@ -69,15 +69,12 @@ export function createApp(
       return c.json({ error: 'Not found' }, 404)
     }
 
-    const mimeType = getMimeType(filePath.toLowerCase())
-    if (mimeType !== 'image/png' && mimeType !== 'image/jpeg') {
+    const mimeType = imageMimeType(filePath)
+    if (!mimeType) {
       return c.json({ error: 'Forbidden' }, 403)
     }
-    const signature = Buffer.from(await file.slice(0, 8).arrayBuffer())
-    const matches = mimeType === 'image/png'
-      ? signature.equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-      : signature.subarray(0, 3).equals(Buffer.from([255, 216, 255]))
-    if (!matches) return c.json({ error: 'Forbidden' }, 403)
+    const signature = Buffer.from(await file.slice(0, 16).arrayBuffer())
+    if (!matchesImageSignature(signature, mimeType)) return c.json({ error: 'Forbidden' }, 403)
 
     c.header('Content-Type', mimeType)
     c.header('X-Content-Type-Options', 'nosniff')
