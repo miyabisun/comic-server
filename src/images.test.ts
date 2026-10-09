@@ -9,10 +9,11 @@ import { comicPath } from './lib/config.js'
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURf8AAP///0EdNBEAAAABYktHRAH/Ai3eAAAAB3RJTUUH6gkJDBQzk3fwmAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyNi0wOS0wOVQxMjoyMDo1MSswMDowMDb9R10AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjYtMDktMDlUMTI6MjA6NTErMDA6MDBHoP/hAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDI2LTA5LTA5VDEyOjIwOjUxKzAwOjAwELXePgAAAAxJREFUCNdjYGBgAAAABAABJzQnCgAAAABJRU5ErkJggg==', 'base64')
 const jpeg = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAACAAIDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAVAQEBAAAAAAAAAAAAAAAAAAAHCf/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ADoDFU3/2Q==', 'base64')
 let fixture: string
-const newImages = ['static.webp', 'static.gif', 'animated.webp', 'animated.gif'].map(name => ({
+const mimes: Record<string, string> = { webp: 'image/webp', gif: 'image/gif', avif: 'image/avif', jxl: 'image/jxl' }
+const newImages = ['static.webp', 'static.gif', 'animated.webp', 'animated.gif', 'static.avif', 'static.jxl'].map(name => ({
   name,
   bytes: fs.readFileSync(new URL(`./test/fixtures/images/${name}`, import.meta.url)),
-  mime: name.endsWith('webp') ? 'image/webp' : 'image/gif',
+  mime: mimes[name.split('.')[1]],
 }))
 let outside: string
 let privateDir: string
@@ -64,7 +65,8 @@ test('never serves databases, disguised files, outside links or private staging'
   fs.symlinkSync(privateDir, path.join(fixture, 'private-dir'))
   const rejected: string[] = []
   for (const { name, bytes } of newImages) {
-    for (const prefix of ['disguised-', 'outside-', 'private-']) rejected.push(prefix + name)
+    for (const prefix of ['disguised-', 'swapped-', 'outside-', 'private-']) rejected.push(prefix + name)
+    fs.writeFileSync(path.join(fixture, `swapped-${name}`), png)
     fs.copyFileSync(path.join(fixture, 'comic.db'), path.join(fixture, `disguised-${name}`))
     fs.writeFileSync(path.join(outside, name), bytes)
     fs.symlinkSync(path.join(outside, name), path.join(fixture, `outside-${name}`))

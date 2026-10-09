@@ -73,7 +73,8 @@ export function createApp(
     if (!mimeType) {
       return c.json({ error: 'Forbidden' }, 403)
     }
-    const signature = Buffer.from(await file.slice(0, 16).arrayBuffer())
+    // ponytail: 64 bytes holds an AVIF ftyp with up to 12 brands; read the full box if longer ones appear.
+    const signature = Buffer.from(await file.slice(0, 64).arrayBuffer())
     if (!matchesImageSignature(signature, mimeType)) return c.json({ error: 'Forbidden' }, 403)
 
     c.header('Content-Type', mimeType)

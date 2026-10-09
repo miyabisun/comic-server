@@ -34,9 +34,9 @@ COMIC_PATH=/path/to/comics bun start
 ## フォルダ構成
 
 `COMIC_PATH` に指定したフォルダの中に、本棚ごとのサブフォルダを配置します。
-各コミックは PNG/JPEG 画像を含むフォルダです。
+各コミックは PNG/JPEG/WebP/GIF/AVIF/JPEG XL 画像を含むフォルダです。
 
-`/images/*` は解決後のファイルの拡張子と先頭署名を確認し、PNG/JPEGだけを配信します。COMIC_PATH外、非公開の `.remaster` 作業領域、DBなどの非画像ファイルはsymlink経由も含めて拒否します。画像は再エンコードせず配信します。
+`/images/*` は解決後のファイルの拡張子と先頭署名を確認し、PNG/JPEG/WebP/GIF/AVIF/JPEG XLだけを配信します。COMIC_PATH外、非公開の `.remaster` 作業領域、DBなどの非画像ファイルはsymlink経由も含めて拒否します。画像は再エンコードせず配信します。
 
 ```
 COMIC_PATH/
@@ -58,7 +58,7 @@ COMIC_PATH/
 
 ### 2. `haystack/` にコミックを追加する
 
-画像ファイル (`.jpg`, `.png`) を含むフォルダを `haystack/` ディレクトリに配置します。
+画像ファイル (`.jpg`, `.png`, `.webp`, `.gif`, `.avif`, `.jxl`) を含むフォルダを `haystack/` ディレクトリに配置します。
 
 フォルダ名は `(ジャンル) [ブランド] タイトル (原作)` の形式を想定しています:
 

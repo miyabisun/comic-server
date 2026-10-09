@@ -8,3 +8,5 @@ magick -size 32x32 xc:red -strip static.png
 magick -size 32x32 xc:blue -strip static.jpg
 magick -delay 40 -size 32x32 xc:red -delay 40 -size 32x32 xc:blue -loop 0 -strip animated.gif
 magick -delay 40 -size 32x32 xc:red -delay 40 -size 32x32 xc:blue -loop 0 -strip animated.webp
+magick -size 32x32 xc:red -strip static.avif
+magick -size 32x32 xc:blue -strip static.jxl

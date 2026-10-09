@@ -4,7 +4,8 @@ import { getMimeType } from 'hono/utils/mime'
 // Normal viewing only; remaster/resize retain their own JPEG/PNG restrictions.
 export function imageMimeType(filename: string): string | undefined {
   const extension = path.extname(filename).toLowerCase()
-  if (!['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(extension)) return undefined
+  if (extension === '.jxl') return 'image/jxl'
+  if (!['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'].includes(extension)) return undefined
   return getMimeType(extension)
 }
 
@@ -17,6 +18,19 @@ export function matchesImageSignature(header: Buffer, mime: string): boolean {
     case 'image/webp': return header.toString('latin1', 0, 4) === 'RIFF'
       && header.toString('latin1', 8, 12) === 'WEBP'
       && ['VP8 ', 'VP8L', 'VP8X'].includes(header.toString('latin1', 12, 16))
+    case 'image/avif': return hasAvifBrand(header)
+    case 'image/jxl': return header.subarray(0, 2).equals(Buffer.from([0xff, 0x0a]))
+      || header.subarray(0, 12).equals(Buffer.from([0, 0, 0, 12, 0x4a, 0x58, 0x4c, 0x20, 0x0d, 0x0a, 0x87, 0x0a]))
     default: return false
   }
+}
+
+// ISO-BMFF ftyp box: major brand at 8, minor version at 12, compatible brands until the box ends.
+function hasAvifBrand(header: Buffer): boolean {
+  if (header.length < 12 || header.toString('latin1', 4, 8) !== 'ftyp') return false
+  const end = Math.min(header.readUInt32BE(0), header.length)
+  for (let offset = 8; offset + 4 <= end; offset += 4) {
+    if (offset !== 12 && ['avif', 'avis'].includes(header.toString('latin1', offset, offset + 4))) return true
+  }
+  return false
 }

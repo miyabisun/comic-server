@@ -19,6 +19,9 @@ const books = [
   { title: 'WebPのみ', pages: ['1.webp', '2.WEBP'], assets: ['static.webp', 'animated.webp'] },
   { title: 'GIFのみ', pages: ['1.gif', '2.GIF'], assets: ['static.gif', 'animated.gif'] },
   { title: '混在 日本語 #?%', pages: ['巻 #?%/1.webp', '巻 #?%/2.GIF', '巻 #?%/3.PNG', '巻 #?%/10.JPEG'], assets: ['static.webp', 'animated.gif', 'static.png', 'static.jpg'] },
+  { title: 'AVIFのみ', pages: ['1.avif', '2.AVIF'], assets: ['static.avif', 'static.avif'] },
+  { title: 'AVIF混在 #?%', pages: ['巻 #?%/1.avif', '巻 #?%/2.jpg', '巻 #?%/10.AVIF'], assets: ['static.avif', 'static.jpg', 'static.avif'] },
+  { title: 'JXLのみ', pages: ['1.jxl', '2.JXL'], assets: ['static.jxl', 'static.jxl'] },
 ]
 for (const book of books) {
   for (let i = 0; i < book.pages.length; i++) {
@@ -31,6 +34,7 @@ for (const book of books) {
 const evidence = process.env.VIEWER_EVIDENCE
 if (evidence) fs.mkdirSync(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true })
+console.log(`Chromium ${browser.version()}`)
 try {
   for (const base of ['', '/comic']) {
     // Production uses one BASE_PATH per process; each isolated server needs a fresh SPA cache.
@@ -40,7 +44,25 @@ try {
       const page = await browser.newPage({ viewport: { width: 1000, height: 720 }, colorScheme: 'dark' })
       const errors: string[] = []
       page.on('pageerror', (e: Error) => errors.push(e.message))
+      await page.goto(`${server.url.origin}${base}/bookshelves/unread`)
+      const jxlDecodes = await page.evaluate(async (src: string) => {
+        const img = new Image()
+        img.src = src
+        return img.decode().then(() => true, () => false)
+      }, `${base}/images/unread/${encodeURIComponent('JXLのみ')}/1.jxl`)
       for (const [index, book] of books.entries()) {
+        if (book.pages[0].endsWith('jxl') && !jxlDecodes) {
+          // Not every Chromium build decodes JPEG XL yet; still prove the bytes reach the browser intact.
+          for (const [i, name] of book.pages.entries()) {
+            const served = await page.evaluate(async (src: string) => {
+              const response = await fetch(src)
+              return [response.status, response.headers.get('content-type'), response.headers.get('x-content-type-options'), [...new Uint8Array(await response.arrayBuffer())]]
+            }, `${base}/images/unread/${encodeURIComponent(book.title)}/${encodeURIComponent(name)}`)
+            assert.deepEqual(served, [200, 'image/jxl', 'nosniff', [...fs.readFileSync(new URL(`../src/test/fixtures/images/${book.assets[i]}`, import.meta.url))]])
+          }
+          console.log(`PASS ${base || '/'} ${book.title}: API delivery only (this Chromium cannot decode JPEG XL)`)
+          continue
+        }
         await page.goto(`${server.url.origin}${base}/bookshelves/unread`)
         await page.getByRole('link', { name: book.title, exact: true }).click()
         await page.locator('#comic .page').waitFor()

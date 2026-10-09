@@ -72,9 +72,9 @@ defaults as the server. Build and test environment settings are not server confi
 
 ## Folder Structure
 
-The `/images/*` endpoint serves PNG/JPEG files only, checking the resolved file extension and signature. Files outside `COMIC_PATH`, private `.remaster` staging, databases and other non-image files are refused, including symlink aliases. Image bytes are streamed without re-encoding.
+The `/images/*` endpoint serves PNG/JPEG/WebP/GIF/AVIF/JPEG XL files only, checking the resolved file extension and signature. Files outside `COMIC_PATH`, private `.remaster` staging, databases and other non-image files are refused, including symlink aliases. Image bytes are streamed without re-encoding.
 
-Place comic folders (containing PNG/JPEG images) inside bookshelf directories under `COMIC_PATH`:
+Place comic folders (containing PNG/JPEG/WebP/GIF/AVIF/JPEG XL images) inside bookshelf directories under `COMIC_PATH`:
 
 ```
 COMIC_PATH/
@@ -96,7 +96,7 @@ All bookshelf directories (including `haystack/`) are created automatically on f
 
 ### 2. Add comics to `haystack/`
 
-Place folders containing image files (`.jpg`, `.png`) into the `haystack/` directory.
+Place folders containing image files (`.jpg`, `.png`, `.webp`, `.gif`, `.avif`, `.jxl`) into the `haystack/` directory.
 
 Folder names should follow the format `(genre) [brand] title (original)`:
 

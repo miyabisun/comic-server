@@ -16,18 +16,21 @@ afterEach(() => {
   for (const dir of dirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true })
 })
 
-test('WebP-only, GIF-only and mixed books expose naturally ordered pages and matching counts', async () => {
+test('WebP-only, GIF-only, AVIF-only, JXL-only and mixed books expose naturally ordered pages and matching counts', async () => {
   for (const names of [
     ['10.WEBP', '2.webp', '1.webp'],
     ['10.GIF', '2.gif', '1.gif'],
     ['別巻/10.webp', '別巻/2.GIF', '別巻/1.PNG', '表紙/2.JPEG', '表紙/1.jpg'],
+    ['10.AVIF', '2.avif', '1.avif'],
+    ['10.JXL', '2.jxl', '1.jxl'],
+    ['別巻/10.avif', '別巻/2.JXL', '別巻/1.webp', '表紙/2.gif', '表紙/1.JPG'],
   ]) {
     const dir = fs.mkdtempSync(path.join(comicPath, 'unread', '閲覧 #?-'))
     const file = path.basename(dir)
     const duplicateDir = path.join(comicPath, 'duplicates', file)
     dirs.push(dir, duplicateDir)
     for (const root of [dir, duplicateDir]) {
-      for (const name of [...names, 'notes.txt', 'art.svg', 'fake.webp.txt']) {
+      for (const name of [...names, 'notes.txt', 'art.svg', 'fake.webp.txt', 'fake.avif.txt', 'fake.jxl.txt']) {
         fs.mkdirSync(path.dirname(path.join(root, name)), { recursive: true })
         fs.writeFileSync(path.join(root, name), 'listing fixture')
       }
