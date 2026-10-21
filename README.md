@@ -243,7 +243,7 @@ also when the models are loaded externally. No commercial permission is included
 |---|---|---|
 | MangaJaNai weights | V1, the-database; seven 2x ESRGAN models, 1200p 70k / 1300p 75k / 1400p 70k / 1500p 90k / 1600p 90k / 1920p 70k / 2048p 95k; [official archive](https://github.com/the-database/MangaJaNai/releases/download/1.0.0/MangaJaNai_V1_ModelsOnly.zip) | [CC BY-NC-SA 4.0](licenses/MangaJaNai-V1.txt) |
 | IllustrationJaNai weights | V1 2x ESRGAN 120k, the-database; [official archive](https://github.com/the-database/MangaJaNai/releases/download/1.0.0/IllustrationJaNai_V1_ModelsOnly.zip) | [CC BY-NC-SA 4.0](licenses/MangaJaNai-V1.txt) |
-| Bun | 1.4.2, Oven / Bun contributors; [source](https://github.com/oven-sh/bun/tree/bun-v1.4.2) | [MIT and bundled component terms](licenses/Bun.md) |
+| Bun | 1.4.3, Oven / Bun contributors; [source](https://github.com/oven-sh/bun/tree/bun-v1.4.3) | [MIT and bundled component terms](licenses/Bun.md) |
 | ONNX Runtime | 1.29.0, Microsoft; [source/release](https://github.com/microsoft/onnxruntime/releases/tag/v1.29.0) | [MIT](licenses/ONNX-Runtime.txt), [third-party notices](licenses/ONNX-Runtime-ThirdPartyNotices.txt) |
 | PyTorch (conversion only) | 2.14.0+cpu, PyTorch contributors; [source](https://github.com/pytorch/pytorch) | BSD-3-Clause; [notice](licenses/conversion-tools.txt) |
 | torchvision (conversion only) | 0.29.0+cpu, PyTorch contributors; [source](https://github.com/pytorch/vision) | BSD-3-Clause; [notice](licenses/conversion-tools.txt) |

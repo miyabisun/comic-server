@@ -16,7 +16,7 @@ RUN python -c "import urllib.request; urllib.request.urlretrieve('https://github
     mkdir /runtime && tar -xzf /runtime.tgz --strip-components=1 -C /runtime
 
 # Stage 1: Build
-FROM oven/bun:1.4.2 AS builder
+FROM oven/bun:1.4.3 AS builder
 WORKDIR /app
 
 # Server dependencies
@@ -37,7 +37,7 @@ COPY src/ /dist/src/
 RUN cd /dist && bun install --frozen-lockfile --production
 
 # Stage 2: Production runtime
-FROM oven/bun:1.4.2-slim
+FROM oven/bun:1.4.3-slim
 WORKDIR /app
 COPY --from=builder /dist ./
 COPY --from=remaster-build /build/target/release/comic-remaster ./target/release/comic-remaster
