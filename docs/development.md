@@ -50,7 +50,7 @@ comic-server/
 ├── drizzle.config.ts       # Drizzle Kit configuration
 ├── Dockerfile
 └── .github/workflows/
-    └── release.yml         # CI/CD → ghcr.io
+    └── release.yml         # Docker image build → ghcr.io
 ```
 
 ## Prerequisites
@@ -100,7 +100,7 @@ The built frontend is served by Hono at `http://localhost:3000`.
 | `bun run build:client` | Build frontend for production |
 | `bun run build` | Build client and Rust remaster helper |
 | `bun start` | Start production server |
-| `bun run test` | Run Bun and Rust tests |
+| `bun run test` | Check Rust format and Clippy, then run Bun and Rust tests (run before every commit) |
 
 ## Docker
 
