@@ -119,84 +119,80 @@
 		{#if !error}<p role="status">loading...</p>{/if}
 	{:else}
 		<p class="scope" aria-live="polite">{match === 'exact' ? '完全一致' : '曖昧検索'} · 一括評価・削除の対象: 表示中の未削除 {targets.length}件</p>
-		<table class="comics">
-			<thead>
-				<tr>
-					<th class="brand">brand</th>
-					<th class="title">title</th>
-					<th class="date">registered</th>
-					<th class="review">
-						<ul>
-							{#each ['hold', 'like', 'favorite', 'love', 'legend'] as n}
-								<li><button type="button" class="bulk-rating" aria-label={`表示中の${targets.length}件を${n}に評価`} disabled={deleting || !targets.length} onclick={() => changeAllBookshelf(n)}>★</button></li>
-							{/each}
-						</ul>
-					</th>
-					<th class="delete">
-						{#if targets.length}
-							<DeleteConfirm
-								active={pendingDelete === 'all'}
-								{deleting}
-								confirmLabel={`${targets.length}件の削除確認`}
-								startAria="すべて削除"
-								confirmAria="すべて削除（確認）"
-								onstart={() => startDelete('all')}
-								onconfirm={deleteAll}
-								oncancel={cancelDelete}
-							/>
-						{/if}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each comics as comic (comic.id)}
-					{@const isDeleted = comic.deleted_at != null}
-					<tr class:deleted={isDeleted}>
-						<td class="brand">{comic.brand}</td>
-						<td class="title">
-							{#if isDeleted}
-								{comic.title || comic.file}
-							{:else}
-								<a href="{link('/comics/' + comic.id)}">{comic.title || comic.file}</a>
-							{/if}
-						</td>
-						<td class="date">
-							{format(parseISO(comic.created_at), 'yyyy-MM-dd HH:mm:ss')}
-						</td>
-						<td class="review">
-							{#if !isDeleted}
-								<ReviewStars bookshelf={comic.bookshelf} onchange={(n) => changeBookshelf(comic, n)} />
-							{/if}
-						</td>
-						<td class="delete">
-							{#if !isDeleted}
+		<div class="table-scroll">
+			<table class="comics">
+				<thead>
+					<tr>
+						<th class="brand">brand</th>
+						<th class="title">title</th>
+						<th class="date">registered</th>
+						<th class="review">
+							<ul>
+								{#each ['hold', 'like', 'favorite', 'love', 'legend'] as n}
+									<li><button type="button" class="bulk-rating" aria-label={`表示中の${targets.length}件を${n}に評価`} disabled={deleting || !targets.length} onclick={() => changeAllBookshelf(n)}>★</button></li>
+								{/each}
+							</ul>
+						</th>
+						<th class="delete">
+							{#if targets.length}
 								<DeleteConfirm
-									active={pendingDelete === comic.id}
+									active={pendingDelete === 'all'}
 									{deleting}
-									confirmLabel="削除確認"
-									startAria="この漫画を削除"
-									confirmAria="この漫画を削除（確認）"
-									onstart={() => startDelete(comic.id)}
-									onconfirm={() => deleteComic(comic)}
+									confirmLabel={`${targets.length}件の削除確認`}
+									startAria="すべて削除"
+									confirmAria="すべて削除（確認）"
+									onstart={() => startDelete('all')}
+									onconfirm={deleteAll}
 									oncancel={cancelDelete}
 								/>
 							{/if}
-						</td>
+						</th>
 					</tr>
-				{/each}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					{#each comics as comic (comic.id)}
+						{@const isDeleted = comic.deleted_at != null}
+						<tr class:deleted={isDeleted}>
+							<td class="brand">{comic.brand}</td>
+							<td class="title">
+								{#if isDeleted}
+									{comic.title || comic.file}
+								{:else}
+									<a href="{link('/comics/' + comic.id)}">{comic.title || comic.file}</a>
+								{/if}
+							</td>
+							<td class="date">
+								{format(parseISO(comic.created_at), 'yyyy-MM-dd HH:mm:ss')}
+							</td>
+							<td class="review">
+								{#if !isDeleted}
+									<ReviewStars bookshelf={comic.bookshelf} onchange={(n) => changeBookshelf(comic, n)} />
+								{/if}
+							</td>
+							<td class="delete">
+								{#if !isDeleted}
+									<DeleteConfirm
+										active={pendingDelete === comic.id}
+										{deleting}
+										confirmLabel="削除確認"
+										startAria="この漫画を削除"
+										confirmAria="この漫画を削除（確認）"
+										onstart={() => startDelete(comic.id)}
+										onconfirm={() => deleteComic(comic)}
+										oncancel={cancelDelete}
+									/>
+								{/if}
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	{/if}
 </main>
 
 <style lang="sass">
 #bookshelf
-	padding: 15px
-
-	h2
-		margin-top: 12px
-		overflow-wrap: anywhere
-
 	.match-mode
 		display: flex
 		align-items: center
@@ -218,67 +214,22 @@
 	[role="alert"]
 		color: var(--c-danger)
 
-	.comics
-		thead
-			display: block
-			overflow-x: hidden
-			width: calc(100vw - 30px)
+	.comics .review ul
+		display: flex
+		margin: 0
+		padding: 0
+		list-style: none
 
-		tbody
-			display: block
-			overflow-x: hidden
-			overflow-y: scroll
-			width: calc(100vw - 20px)
-			height: 85vh
-			&::-webkit-scrollbar
-				width: 10px
-			&::-webkit-scrollbar-track
-				background: var(--c-bg)
-			&::-webkit-scrollbar-thumb
-				background: var(--c-border)
-				border-radius: 5px
-			tr
-				width: 100%
-
-			td
-				padding: var(--sp-1) 0
-				line-height: 1.5
-
-		.deleted
-			color: var(--c-text-muted)
-
-		.brand
-			min-width: 20vw
-
-		.title
-			width: 1000px
-
-		.date
-			min-width: 12vw
-
-		.review
-			min-width: 120px
-
-			ul
-				display: flex
-				margin: 0
-				padding: 0
-				list-style: none
-
-				.bulk-rating
-					min-width: 24px
-					min-height: 24px
-					padding: 0
-					border: none
-					background: none
-					color: inherit
-					cursor: pointer
-					&:hover
-						color: var(--c-accent)
-					&:disabled
-						opacity: 0.5
-
-		.delete
-			position: relative
-			width: 2vw
+		.bulk-rating
+			min-width: 24px
+			min-height: 24px
+			padding: 0
+			border: none
+			background: none
+			color: inherit
+			cursor: pointer
+			&:hover
+				color: var(--c-accent)
+			&:disabled
+				opacity: 0.5
 </style>

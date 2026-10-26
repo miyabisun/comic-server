@@ -260,7 +260,7 @@
 		loading...
 	{:else}
 		<div class="canvas">
-			<ul class="images" style="transform: translateX(-{(imgPointer - 1) * 100}vw)">
+			<ul class="images" style="transform: translateX(-{(imgPointer - 1) * 100}%)">
 				{#if comic.images.length > 0}
 					{#each comic.images as it (it)}
 						<li>
@@ -408,35 +408,34 @@
 </main>
 
 <style lang="sass">
-$height: calc(100vh - 22px)
-
 #comic
 	background-color: var(--c-bg)
 	color: var(--c-text)
 
 	.canvas
-		height: fit-content
+		height: 100%
 		position: relative
 		/* domain exception: reader checkerboard stays light in both themes (see docs/DESIGN.md) */
 		background-color: white
 		background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)
 		background-position: 0 0, 30px 30px
 		background-size: 60px 60px
-		overflow-x: hidden
+		overflow: hidden
 
 	.images
 		display: flex
 		align-items: center
+		height: 100%
 
 		li
 			position: relative
 			flex-shrink: 0
-			width: 100vw
-			height: $height
+			width: 100%
+			height: 100%
 
 			img
 				width: 100%
-				height: $height
+				height: 100%
 				object-fit: contain
 				pointer-events: none
 

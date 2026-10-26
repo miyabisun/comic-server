@@ -101,6 +101,8 @@ The built frontend is served by Hono at `http://localhost:3000`.
 | `bun run build` | Build client and Rust remaster helper |
 | `bun start` | Start production server |
 | `bun run test` | Check Rust format and Clippy, then run Bun and Rust tests (run before every commit) |
+| `PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs bun scripts/check-layout.ts` | After `bun run build:client`, check in Chromium that lists and the reader fit the viewport and that every list column is reachable at 400px |
+| `PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs bun scripts/check-image-viewer.ts` | After `bun run build:client`, check in Chromium that every supported image format is displayed |
 
 ## Docker
 

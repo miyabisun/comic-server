@@ -24,6 +24,8 @@ header
 	padding: 0 var(--sp-4)
 
 .brand
+	flex: none
+	white-space: nowrap
 	color: var(--c-text)
 	font-weight: 500
 	padding: var(--sp-3) var(--sp-4) var(--sp-3) 0

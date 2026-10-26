@@ -88,6 +88,19 @@ two domain layouts instead:
 - **Reader (Comic page):** a full-viewport canvas; the page image is the
   screen. All chrome on this screen floats over the image (see Reader
   canvas below).
+- **Fixed page frame (Bookshelf, Brand, Reader):** the page is pinned to
+  the viewport and never scrolls in either direction. The header keeps
+  its natural height and the screen below it takes the rest through
+  layout, not viewport arithmetic. On the list screens the title and
+  controls stay put, and the rows scroll in one area, vertically and
+  horizontally, under column headers that stay visible and stay aligned
+  with their columns. On narrow screens every column, including review
+  and delete, is reached by scrolling that area sideways. The reader
+  canvas fills the space below the header. The user asked on 2026-09-17
+  that the header no longer scroll away with the list, and on 2026-10-26
+  that these screens show no second, page-level scrollbar.
+- **Header:** the app title stays on one line; the shelf nav scrolls
+  sideways inside itself when the shelves do not fit.
 
 ## Components
 

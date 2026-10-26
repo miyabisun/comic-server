@@ -98,7 +98,7 @@
 		loading...
 	{:else}
 		<h2>bookshelf: {name}</h2>
-		<div class="table">
+		<div class="table-scroll">
 			<table class="comics">
 				<thead>
 					<tr>
@@ -122,8 +122,6 @@
 						</th>
 					</tr>
 				</thead>
-			</table>
-			<table class="comics">
 				<tbody>
 					{#each sorted as comic (comic.id)}
 						{@const isDeleted = comic.deleted_at != null}
@@ -171,57 +169,7 @@
 </main>
 
 <style lang="sass">
-#bookshelf
-	padding: 15px
-
-	h2
-		margin-top: 12px
-
-	.comics
-		thead
-			display: block
-			overflow-x: hidden
-			width: calc(100vw - 30px)
-
-			.brand, .date
-				cursor: pointer
-
-		tbody
-			display: block
-			overflow-x: hidden
-			overflow-y: scroll
-			width: calc(100vw - 20px)
-			height: 85vh
-			&::-webkit-scrollbar
-				width: 10px
-			&::-webkit-scrollbar-track
-				background: var(--c-bg)
-			&::-webkit-scrollbar-thumb
-				background: var(--c-border)
-				border-radius: 5px
-			tr
-				width: 100%
-
-			td
-				padding: var(--sp-1) 0
-				line-height: 1.5
-
-		.deleted
-			color: var(--c-text-muted)
-
-		.brand
-			min-width: 20vw
-
-		.title
-			width: 1000px
-
-		.date
-			min-width: 12vw
-
-		.review
-			min-width: 6vw
-
-		.delete
-			position: relative
-			width: 2vw
+#bookshelf .comics thead
+	.brand, .date
+		cursor: pointer
 </style>
