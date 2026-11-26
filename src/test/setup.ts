@@ -1,3 +1,4 @@
+import { afterAll } from 'bun:test'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -11,4 +12,5 @@ process.env.COMIC_PATH = comicDir
 process.env.DATABASE_PATH = path.join(comicDir, 'comic.db')
 process.env.REMASTER_BIN = path.join(comicDir, 'remaster-stub')
 process.env.REMASTER_MODEL_DIR = path.join(comicDir, 'models')
-process.on('exit', () => fs.rmSync(comicDir, { recursive: true, force: true }))
+// bun test does not call a preload's process.on('exit'), so clean up in a top-level afterAll.
+afterAll(() => fs.rmSync(comicDir, { recursive: true, force: true }))
