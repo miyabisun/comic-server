@@ -50,10 +50,12 @@
 		if (!comic || showInfo) return;
 		switch (e.key) {
 			case 'ArrowLeft':
+				e.preventDefault();
 				imgPointer = Math.max(imgPointer - 1, 1);
 				prev.pressed = true;
 				break;
 			case 'ArrowRight':
+				e.preventDefault();
 				imgPointer = Math.min(imgPointer + 1, comic.images.length);
 				next.pressed = true;
 				break;
@@ -74,6 +76,14 @@
 				}
 				break;
 		}
+	}
+
+	// A key released while a menu or another window has the keyboard never sends keyup here.
+	function releaseKeys() {
+		prev.pressed = false;
+		next.pressed = false;
+		back.pressed = false;
+		skip.pressed = false;
 	}
 
 	function handleKeyUp(e) {
@@ -253,7 +263,7 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
+<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} onblur={releaseKeys} oncontextmenu={releaseKeys} />
 
 <main id="comic">
 	{#if !comic}
@@ -264,7 +274,7 @@
 				{#if comic.images.length > 0}
 					{#each comic.images as it (it)}
 						<li>
-							<img src="{config.path.images}/{[comic.bookshelf, comic.file, ...it.split('/')].map(encodeURIComponent).join('/')}" alt="" loading="lazy" />
+							<img src="{config.path.images}/{[comic.bookshelf, comic.file, ...it.split('/')].map(encodeURIComponent).join('/')}" alt="" loading="lazy" draggable="false" />
 						</li>
 					{/each}
 				{:else}
@@ -437,7 +447,6 @@
 				width: 100%
 				height: 100%
 				object-fit: contain
-				pointer-events: none
 
 	.page
 		display: flex

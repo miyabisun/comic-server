@@ -44,6 +44,7 @@ try {
       const page = await browser.newPage({ viewport: { width: 1000, height: 720 }, colorScheme: 'dark' })
       const errors: string[] = []
       page.on('pageerror', (e: Error) => errors.push(e.message))
+      page.on('console', (m: any) => { if (m.type() === 'error') errors.push(m.text()) })
       await page.goto(`${server.url.origin}${base}/bookshelves/unread`)
       const jxlDecodes = await page.evaluate(async (src: string) => {
         const img = new Image()
